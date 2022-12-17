@@ -5,6 +5,8 @@ import os
 from tqdm import tqdm
 import json
 import zipfile
+import defcon
+import extractor
 
 def get_fonts_info(api_key: str) -> pd.DataFrame:
     """
@@ -126,3 +128,10 @@ def download_fonts(font_dataset: pd.DataFrame, font_folder: str) -> pd.DataFrame
 
         families_paths.append(ttf_files)
     return font_dataset.assign(file_path=families_paths)
+
+def ttf_to_ufo(ttf_file_path: str, ufo_file_path: str):
+    # Convert TTF file to UFO
+    ufo = defcon.Font()
+    extractor.extractUFO(ttf_file_path, ufo)
+
+    ufo.save(ufo_file_path)
