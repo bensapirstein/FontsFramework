@@ -6,3 +6,5 @@ fonts/
 __pycache__/
 
 .idea/
+
+tests/TestUFO/
