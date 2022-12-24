@@ -1,12 +1,12 @@
-import defcon
+from defcon import Font
 
 def create_unified_font(font_paths):
     # Create a new font object
-    new_font = defcon.Font()
+    new_font = Font()
     new_font.ufoVersion = "3.0"
 
     # Load the source fonts
-    fonts = [defcon.Font(path) for path in font_paths]
+    fonts = [Font(path) for path in font_paths]
 
     unite_infos(new_font, fonts)
 
@@ -18,6 +18,7 @@ def create_unified_font(font_paths):
             new_font[glyph.name].width = glyph.width
             new_font[glyph.name].note = glyph.note
             new_font[glyph.name].lib[glyph.name] = glyph.lib
+            glyph.draw(new_font[glyph.name].getPen())
 
     return new_font
 
