@@ -15,7 +15,7 @@ The dataset should contain a list of font families, where each font family is re
 
 
 - `family`: a string indicating the name of the font family
-- `alphabets`: a list of alphabets supported by the font family
+- `subsets`: a list of strings that indicate the language or character sets that the font is designed to support
 - `category`: a string indicating the category of the font family (e.g. serif, sans-serif, handwriting, display)
 - `variants`: a list of dictionaries, where each dictionary represents a variant of the font family. Each variant dictionary should contain the following key-value pairs:
   - `name`: a string indicating the name of the variant
