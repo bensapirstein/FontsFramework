@@ -2,7 +2,7 @@ from defcon import Font
 import extractor
 import numpy as np
 from ufo2ft import compileOTF
-from fontTools.pens.cairoPen import CairoPen
+#from fontTools.pens.cairoPen import CairoPen
 from fontTools.pens.statisticsPen import StatisticsPen
 from fontTools.svgLib.path import SVGPath
 from fontTools.pens.svgPathPen import SVGPathPen
