@@ -9,4 +9,10 @@ __pycache__/
 
 tests/TestUFO/
 
-data/
+data/genarated/
+
+src/data/download_data.csv
+
+src/data/glyphs_data.csv
+
+src/data/ufo_data.csv
