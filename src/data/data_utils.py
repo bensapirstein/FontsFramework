@@ -8,7 +8,7 @@ from fontTools.svgLib.path import SVGPath
 from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.misc.transform import Identity
 
-import cairo
+# import cairo
 
 svg_format="""<svg>
   <path d="%s" />
