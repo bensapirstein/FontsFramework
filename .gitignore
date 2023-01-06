@@ -16,3 +16,5 @@ src/data/download_data.csv
 src/data/glyphs_data.csv
 
 src/data/ufo_data.csv
+
+FontsFramework.egg-info/

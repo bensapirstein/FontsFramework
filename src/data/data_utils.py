@@ -1,14 +1,12 @@
 from defcon import Font
-import extractor
+#import extractor
 import numpy as np
-from ufo2ft import compileOTF
-from fontTools.pens.cairoPen import CairoPen
+#from ufo2ft import compileOTF
 from fontTools.pens.statisticsPen import StatisticsPen
 from fontTools.svgLib.path import SVGPath
 from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.misc.transform import Identity
 
-# import cairo
 
 svg_format="""<svg>
   <path d="%s" />
@@ -69,25 +67,6 @@ def normalize_svg(svg, meanX, meanY, stddevY):
 def normalize_glyph(glyph):
     return transform_svg(glyph["svg"], -glyph["meanX"], -glyph["meanY"],
                         np.abs(1/glyph["stddevX"]), np.abs(1/glyph["stddevY"]))
-
-def glyph_to_img(glyph, outpath):
-    # Create a Cairo context and pen
-    surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 1000, 1000)
-    context = cairo.Context(surface)
-    context.set_source_rgb(1, 1, 1)
-    context.paint()
-
-    pen = CairoPen(glyph.font, context)
-
-    context.set_source_rgb(0, 0, 0)
-
-    context.set_line_width(20)
-    context.translate(glyph.width, 0)
-    #context.scale(0.2, -0.2)
-    # Draw the glyph using the pen
-    glyph.draw(pen)
-
-    context.stroke()
 
     # Save the image to a file
     surface.write_to_png(f"glyphs/{glyph.name}.png")
