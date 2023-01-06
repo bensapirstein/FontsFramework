@@ -7,6 +7,8 @@ from fontTools.svgLib.path import SVGPath
 from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.misc.transform import Identity
 
+# import cairo
+
 
 svg_format="""<svg>
   <path d="%s" />
@@ -67,6 +69,3 @@ def normalize_svg(svg, meanX, meanY, stddevY):
 def normalize_glyph(glyph):
     return transform_svg(glyph["svg"], -glyph["meanX"], -glyph["meanY"],
                         np.abs(1/glyph["stddevX"]), np.abs(1/glyph["stddevY"]))
-
-    # Save the image to a file
-    surface.write_to_png(f"glyphs/{glyph.name}.png")
