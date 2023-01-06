@@ -1,14 +1,15 @@
 from defcon import Font
-import extractor
+#import extractor
 import numpy as np
-from ufo2ft import compileOTF
-#from fontTools.pens.cairoPen import CairoPen
+#from ufo2ft import compileOTF
 from fontTools.pens.statisticsPen import StatisticsPen
 from fontTools.svgLib.path import SVGPath
 from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.misc.transform import Identity
 
-# import cairo
+import xml.etree.ElementTree as ET
+import bson
+
 
 svg_format="""<svg>
   <path d="%s" />
@@ -70,24 +71,40 @@ def normalize_glyph(glyph):
     return transform_svg(glyph["svg"], -glyph["meanX"], -glyph["meanY"],
                         np.abs(1/glyph["stddevX"]), np.abs(1/glyph["stddevY"]))
 
-def glyph_to_img(glyph, outpath):
-    # Create a Cairo context and pen
-    surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 1000, 1000)
-    context = cairo.Context(surface)
-    context.set_source_rgb(1, 1, 1)
-    context.paint()
+def xml_to_dict(root):
+    if root.text is None:
+        text = ''
+    else:
+        text = root.text
+    res = {root.tag: {}}
+    children = list(root)
+    if children:
+        for child in children:
+            child_res = xml_to_dict(child)
+            if child.tag in res[root.tag]:
+                if not isinstance(res[root.tag][child.tag], list):
+                    res[root.tag][child.tag] = [res[root.tag][child.tag]]
+                res[root.tag][child.tag].append(child_res[child.tag])
+            else:
+                res[root.tag].update(child_res)
+    else:
+        res[root.tag]['value'] = text
+    return res
 
-    pen = CairoPen(glyph.font, context)
-
-    context.set_source_rgb(0, 0, 0)
-
-    context.set_line_width(20)
-    context.translate(glyph.width, 0)
-    #context.scale(0.2, -0.2)
-    # Draw the glyph using the pen
-    glyph.draw(pen)
-
-    context.stroke()
-
-    # Save the image to a file
-    surface.write_to_png(f"glyphs/{glyph.name}.png")
+def dict_to_xml(dictionary):
+    def build_xml(parent, element_dict):
+        if isinstance(element_dict, dict):
+            for tag, value in element_dict.items():
+                if isinstance(value, list):
+                    for item in value:
+                        build_xml(parent, {tag: item})
+                else:
+                    new_element = Element(tag)
+                    parent.append(new_element)
+                    build_xml(new_element, value)
+        elif isinstance(element_dict, str):
+            parent.text = element_dict
+    root_tag = list(dictionary.keys())[0]
+    root = Element(root_tag)
+    build_xml(root, dictionary[root_tag])
+    return root
