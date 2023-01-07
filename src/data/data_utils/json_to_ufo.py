@@ -60,7 +60,7 @@ def json_to_glif(glyph_json: dict) -> str:
     # convert the ElementTree object to an XML string
     return ET.tostring(root, encoding='unicode')
 
-def json_to_ufo(ufo_path, ufo_json: dict):
+def json_to_ufo(ufo_json: dict, ufo_path):
     # create the UFO directory if it doesn't exist
     if not os.path.exists(ufo_path):
         os.makedirs(ufo_path)
@@ -94,7 +94,7 @@ def main():
 
     # create the UFO file
     ufo_path = 'Alef-Regular.ufo'
-    json_to_ufo(ufo_path, ufo_json)
+    json_to_ufo(ufo_json, ufo_path)
 
 if __name__ == '__main__':
     main()
