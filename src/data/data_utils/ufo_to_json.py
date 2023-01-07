@@ -1,4 +1,3 @@
-import json
 import plistlib
 import os
 
@@ -111,3 +110,11 @@ def ufo_to_json(ufo_path):
     # Convert UFO data to JSON
     ufo_json = json.dumps(ufo_data)
     return ufo_json
+
+if "__main__" == __name__:
+    # Example usage
+    ufo_path = '../../../data/processed/fonts/UFO/Alef/Alef-Regular.ufo'
+    json_string = ufo_to_json(ufo_path)
+
+    with open('Alef-Regular.json', 'w') as outfile:
+        outfile.write(json_string)
