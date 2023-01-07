@@ -7,7 +7,9 @@ from fontTools.svgLib.path import SVGPath
 from fontTools.pens.svgPathPen import SVGPathPen
 from fontTools.misc.transform import Identity
 
-# import cairo
+import xml.etree.ElementTree as ET
+import bson
+
 
 
 svg_format="""<svg>
