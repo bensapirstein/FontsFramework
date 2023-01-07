@@ -1,7 +1,7 @@
 import bson.json_util
 import math
 import pymongo
-from utils.ufo_to_json import ufo_to_json
+from data_utils.ufo_to_json import ufo_to_json
 
 class FontsDataEngine:
     def __init__(self, mongos_port):
@@ -27,16 +27,16 @@ class FontsDataEngine:
 
 if "__main__" == __name__:
     # Example usage
-    ufo_path = '../../data/processed/fonts/UFO/Alef/Alef-Regular.ufo'
+    ufo_path = '../../data/processed/fonts/UFO/Alef/Alef-Bold.ufo'
 
     # Connect to the MongoDB sharded cluster
     data_engine = FontsDataEngine(27017)
 
     # Add the UFO font to the database
-    data_engine.add_ufo_font(ufo_path, 'Alef', 'Regular')
+    data_engine.add_ufo_font(ufo_path, 'Alef', 'Bold')
 
     # Retrieve the UFO font from the database
-    retrieved_ufo_font_xml = data_engine.get_ufo_font('Alef', 'Regular')
+    retrieved_ufo_font_xml = data_engine.get_ufo_font('Alef', 'Bold')
 
     # Print the retrieved UFO font XML
     print(retrieved_ufo_font_xml)
