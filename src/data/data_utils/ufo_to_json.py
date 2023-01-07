@@ -1,4 +1,3 @@
-import json
 import plistlib
 import os
 
@@ -95,7 +94,8 @@ def ufo_to_json(ufo_path):
     for glyph_name, glif_fname in plist_data['glyphs/contents.plist'].items():
         # Read in GLIF file and convert to dictionary
         with open(f'{ufo_path}/glyphs/{glif_fname}', 'r') as f:
-            glyph_data[glyph_name] = glif_to_json(f.read())
+            glif_fn_no_extension = ".".join(glif_fname.split('.')[:-1])
+            glyph_data[glif_fn_no_extension] = glif_to_json(f.read())
 
     if os.path.exists(f'{ufo_path}/features.fea'):
         with open(f'{ufo_path}/features.fea', "rb") as f:
@@ -111,3 +111,11 @@ def ufo_to_json(ufo_path):
     # Convert UFO data to JSON
     ufo_json = json.dumps(ufo_data)
     return ufo_json
+
+if "__main__" == __name__:
+    # Example usage
+    ufo_path = '../../../data/processed/fonts/UFO/Alef/Alef-Regular.ufo'
+    json_string = ufo_to_json(ufo_path)
+
+    with open('Alef-Regular.json', 'w') as outfile:
+        outfile.write(json_string)
