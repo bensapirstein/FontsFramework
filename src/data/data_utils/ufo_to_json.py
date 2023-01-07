@@ -108,9 +108,7 @@ def ufo_to_json(ufo_path):
         'glyphs': glyph_data
     }
 
-    # Convert UFO data to JSON
-    ufo_json = json.dumps(ufo_data)
-    return ufo_json
+    return ufo_data
 
 if "__main__" == __name__:
     # Example usage
