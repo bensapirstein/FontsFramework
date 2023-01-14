@@ -4,7 +4,7 @@ from data_utils.ufo_to_json import ufo_to_json
 from data_utils.json_to_ufo import json_to_ufo
 from data_utils.ufo_to_ttf import ufo_to_ttf
 
-class DataLake:
+class FontStorage:
     def __init__(self, mongos_port: int):
         """
         Initializes a new instance of the DataLake class.
@@ -74,7 +74,7 @@ if "__main__" == __name__:
     ufo_path = f'../../data/processed/fonts/UFO/{family}/{family}-{variant}.ufo'
 
     # Connect to the MongoDB sharded cluster
-    data_engine = DataLake(27017)
+    data_engine = FontStorage(27017)
 
     data_engine.delete_ufo_font(family, variant)
 
