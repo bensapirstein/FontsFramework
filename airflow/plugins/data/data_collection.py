@@ -8,6 +8,7 @@ import zipfile
 import requests
 from data.data_utils.font_to_ufo import ttf_to_ufo, var_ttf_to_ufo
 from data.data_utils.ufo_to_json import ufo_to_json
+from pymongo.collection import Collection
 
 def get_fonts_info(api_key: str) -> pd.DataFrame:
     """
@@ -42,12 +43,12 @@ def get_fonts_info(api_key: str) -> pd.DataFrame:
     return pd.DataFrame(fonts['items'])
 
 
-def filter_fonts(df: pd.DataFrame, num_fonts: int=None, categories: list=None, subsets: list=None, ufo_collection=None) -> pd.DataFrame:
+def filter_fonts(df: pd.DataFrame, num_fonts: int=None, categories: list=None, subsets: list=None, ufos_collection: Collection=None) -> pd.DataFrame:
     """
     This function selects a subset of fonts from the specified DataFrame based on the categories and subsets.
     It returns a random sample of the specified number of fonts.
     If no number is specified, it returns all the fonts in the dataset that match the specified categories and subsets.
-    If mongo collection is given, filters fonts that already exist on the DB
+    If a MongoDB collection is provided, the function filters out fonts that already exist in the collection
 
     Parameters:
     - df (pd.DataFrame): A Pandas DataFrame containing a list of fonts, with a 'category' column specifying the font category and a 'subsets' column specifying the supported character subsets.
@@ -70,10 +71,22 @@ def filter_fonts(df: pd.DataFrame, num_fonts: int=None, categories: list=None, s
     if subsets:
         df = df[df["subsets"].apply(lambda x: any(lang in x for lang in subsets))]
 
-    if ufo_collection:
-        pass
+    if ufos_collection:
+        # The function removes fonts that are already present in the specified MongoDB collection
+        existing_families = [doc['family'] for doc in ufos_collection.find()]
+
+        print(f"The following families already exist in the MongoDB collection and will be dropped: "
+              f"{[family for family in existing_families if family in df['family'].tolist()]}")
+        df = df[~df['family'].isin(existing_families)]
+
     # Return the generated dataset of fonts
-    return df.sample(num_fonts) if num_fonts else df
+    if num_fonts:
+        if num_fonts < df.shape[0]:
+            print(f"Selected {num_fonts} random fonts out of {df.shape[0]}.")
+            return df.sample(num_fonts)
+        else:
+            print(f"Requested number of fonts is greater than the remaining amount. Returning {df.shape[0]} fonts.")
+            return df
 
 
 
