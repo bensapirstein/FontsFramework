@@ -1,2 +1,37 @@
 # Providers for MongoDB storage for Airflow
 apache-airflow-providers-mongo==3.1.0
+
+# Collection of tools for manipulating font files
+#pysilfont @ git+https://github.com/silnrsi/pysilfont
+
+# Library for working with UFO font files
+defcon
+
+# Library for converting UFO font files to other font formats
+ufo2ft
+
+# Scientific computing library
+scipy
+
+# Progress bar library
+tqdm
+
+# Library for extracting data from UFO font files
+ufo-extractor
+
+# Library for converting SVG path data to Matplotlib paths
+svgpath2mpl
+
+# Machine learning library
+sklearn
+
+# Library for reshaping Arabic text
+arabic-reshaper
+
+# Library for manipulating font files
+fontTools
+
+# Library for bidirectional text layout
+python-bidi
+
+#git==2.*
