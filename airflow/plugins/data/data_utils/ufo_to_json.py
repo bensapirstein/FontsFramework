@@ -20,7 +20,7 @@ def glif_to_json(glif_xml_string: str) -> dict:
     advance = root.find('advance')
     if advance is not None:
         glyph['advance'] = {
-            'width': advance.attrib['width'],
+            'width': advance.attrib.get('width', 0),
             'height': advance.attrib.get('height', 0)
         }
 

@@ -1,11 +1,11 @@
 # Import necessary libraries
 import ast
 import pandas as pd
-import requests
 import os
 from tqdm import tqdm
 import json
 import zipfile
+import requests
 from data.data_utils.font_to_ufo import ttf_to_ufo, var_ttf_to_ufo
 from data.data_utils.ufo_to_json import ufo_to_json
 
@@ -42,11 +42,12 @@ def get_fonts_info(api_key: str) -> pd.DataFrame:
     return pd.DataFrame(fonts['items'])
 
 
-def select_fonts(df: pd.DataFrame, num_fonts: int=None, categories: list=None, subsets: list=None) -> pd.DataFrame:
+def filter_fonts(df: pd.DataFrame, num_fonts: int=None, categories: list=None, subsets: list=None, ufo_collection=None) -> pd.DataFrame:
     """
     This function selects a subset of fonts from the specified DataFrame based on the categories and subsets.
     It returns a random sample of the specified number of fonts.
     If no number is specified, it returns all the fonts in the dataset that match the specified categories and subsets.
+    If mongo collection is given, filters fonts that already exist on the DB
 
     Parameters:
     - df (pd.DataFrame): A Pandas DataFrame containing a list of fonts, with a 'category' column specifying the font category and a 'subsets' column specifying the supported character subsets.
@@ -69,6 +70,8 @@ def select_fonts(df: pd.DataFrame, num_fonts: int=None, categories: list=None, s
     if subsets:
         df = df[df["subsets"].apply(lambda x: any(lang in x for lang in subsets))]
 
+    if ufo_collection:
+        pass
     # Return the generated dataset of fonts
     return df.sample(num_fonts) if num_fonts else df
 
@@ -172,14 +175,19 @@ def convert_df_to_ufo(data_file, fonts_path):
     #Load: The transformed data is loaded into a dataframe called ufo_df using the append function. 
     # The ufo_df dataframe is then saved to a CSV file using the to_csv function.
     ufo_df.to_csv("ufo_data.csv", index=False)
+    return ufo_df
 
 def upload_ufos(ufo_collection):
+    failed_cases = []
     df = pd.read_csv("ufo_data.csv", converters={"subsets": parse_list, "variants":ast.literal_eval})
     for _, row in tqdm(df.iterrows(), total=df.shape[0], desc="Processing Variants..."):
         family = row['family']
         variants = row['variants']
-
         for variant, ufo_file_path in variants.items():
-            # Open the UFO file for the font
-            ufo_json = ufo_to_json(ufo_file_path)
-            ufo_collection.insert_one({'family': family, 'variant': variant, 'data': ufo_json})
+            try:
+                # Open the UFO file for the font
+                ufo_json = ufo_to_json(ufo_file_path)
+                ufo_collection.insert_one({'family': family, 'variant': variant, 'data': ufo_json})
+            except Exception as e:
+                failed_cases.append({'family': family, 'variant': variant, 'error': str(e)})
+    return failed_cases
