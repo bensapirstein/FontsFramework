@@ -1,0 +1,4 @@
+dag_id: 'freefonts_il'
+schedule_interval: '@daily'
+catchup: False
+input: '"http://freefonts.co.il/"'

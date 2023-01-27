@@ -1,0 +1,20 @@
+from airflow import DAG
+from airflow.decorators import task
+from datetime import datetime
+
+with DAG("etl_{{ dag_id}}", start_date=datetime(2023, 1, 1), schedule_interval="{{ schedule_interval}}",
+    catchup={{ catchup or False }}) as dag:
+
+    @task
+    def extract(context):
+        pass
+
+    @task
+    def transform(context):
+        pass
+
+    @task 
+    def load(context):
+        pass
+
+    load(transform(extract({{input}})))
