@@ -150,37 +150,20 @@ def parse_list(string):
     return [s.strip("''") for s in string.strip('[]').split(', ')]
 
 # Receive another parameter for which rows of the df should be executed
-def convert_df_to_ufo(data_file, fonts_path, rows_range=[]):
-    """
-    This function converts the fonts in the specified dataset to UFO format and saves them in the specified folder.
-    The function also generates a Pandas DataFrame containing the font families, their subsets, categories, and master
-    and variant files.
+def convert_df_to_ufo(df, fonts_path):
+
+    # Parse the list columns
+    df['subsets'] = df['subsets'].apply(parse_list)
+    df['category'] = df['category'].apply(parse_list)
+    df['file_path'] = df['file_path'].apply(parse_list)
     
-    Parameters:
-    - font_dataset (pd.DataFrame): A Pandas DataFrame containing a list of fonts, with a 'family' column specifying the
-      font family name.
-    - fonts_path (str): The path to the folder where the generated UFO files will be saved.
-    - rows_range (list): A list of rows to be executed. If empty, all rows will be executed.
-    
-    Returns:
-    - pd.DataFrame: A Pandas DataFrame containing the font families, their subsets, categories, and master and variant
-        files.
+    print(df.head())
 
-    Example:   
-    - font_dataset = select_fonts(fonts_info_df, None, categories=['sans-serif'], subsets=['latin', 'cyrillic'])
-    - font_dataset = download_font_zip(font_dataset)
-    - ufo_df = convert_df_to_ufo(font_dataset, 'fonts')
-    """
-    if rows_range:
-        if 0 not in rows_range:
-            rows_range.append(0)
-        # use pd.read_csv to only read the rows that are needed
-        df = pd.read_csv(data_file, converters={"subsets": parse_list, "file_path": parse_list}, skiprows=lambda x: x not in rows_range)
-        
-    else:
-        df = pd.read_csv(data_file, converters={"subsets": parse_list, "file_path": parse_list})
+    # Create a folder to store the UFO files
+    if not os.path.exists(os.path.join(fonts_path, "UFO")):
+        os.makedirs(os.path.join(fonts_path, "UFO"))
 
-
+    # Create a Pandas DataFrame to store the font families, their subsets, categories, and master and variant files
     ufo_df = pd.DataFrame(columns=['family', 'subsets', 'category', 'master', 'variants'])
     for _, row in tqdm(df.iterrows(), total=df.shape[0], desc="Converting to UFO..."):
         # print row keys
@@ -215,19 +198,18 @@ def convert_df_to_ufo(data_file, fonts_path, rows_range=[]):
 
         # Add the converted UFO file information to the dataframe
         ufo_df = ufo_df.append({'family': family, 'subsets': row["subsets"], 'category': row["category"], 'master': master, 'variants': variants}, ignore_index=True)
-
-    #Load: The transformed data is loaded into a dataframe called ufo_df using the append function. 
-    # The ufo_df dataframe is then saved to a CSV file using the to_csv function.
-    ufo_df.to_csv("ufo_data.csv", index=False)
     return ufo_df
 
-def upload_ufos(ufo_collection):
+def upload_ufos(data_file, ufo_collection):
     failed_cases = []
-    df = pd.read_csv("ufo_data.csv", converters={"subsets": parse_list, "variants":ast.literal_eval})
-    for _, row in tqdm(df.iterrows(), total=df.shape[0], desc="Processing Variants..."):
+    df = pd.read_csv(data_file, converters={"subsets": parse_list, "variants":ast.literal_eval})
+    print(f"Uploading {df.shape[0]} fonts to MongoDB...")
+    for _, row in tqdm(df.iterrows(), total=df.shape[0], desc="Uploading Fonts..."):
         family = row['family']
         variants = row['variants']
+        print(f"Uploading {len(variants)} variants for {family}...")
         for variant, ufo_file_path in variants.items():
+            print(f"Variant: {variant}")
             try:
                 # Open the UFO file for the font
                 ufo_json = ufo_to_json(ufo_file_path)
