@@ -149,10 +149,41 @@ def download_fonts(font_dataset: pd.DataFrame, font_folder: str) -> pd.DataFrame
 def parse_list(string): 
     return [s.strip("''") for s in string.strip('[]').split(', ')]
 
-def convert_df_to_ufo(data_file, fonts_path):
-    df = pd.read_csv(data_file, converters={"subsets": parse_list, "file_path": parse_list})
+# Receive another parameter for which rows of the df should be executed
+def convert_df_to_ufo(data_file, fonts_path, rows_range=[]):
+    """
+    This function converts the fonts in the specified dataset to UFO format and saves them in the specified folder.
+    The function also generates a Pandas DataFrame containing the font families, their subsets, categories, and master
+    and variant files.
+    
+    Parameters:
+    - font_dataset (pd.DataFrame): A Pandas DataFrame containing a list of fonts, with a 'family' column specifying the
+      font family name.
+    - fonts_path (str): The path to the folder where the generated UFO files will be saved.
+    - rows_range (list): A list of rows to be executed. If empty, all rows will be executed.
+    
+    Returns:
+    - pd.DataFrame: A Pandas DataFrame containing the font families, their subsets, categories, and master and variant
+        files.
+
+    Example:   
+    - font_dataset = select_fonts(fonts_info_df, None, categories=['sans-serif'], subsets=['latin', 'cyrillic'])
+    - font_dataset = download_font_zip(font_dataset)
+    - ufo_df = convert_df_to_ufo(font_dataset, 'fonts')
+    """
+    if rows_range:
+        if 0 not in rows_range:
+            rows_range.append(0)
+        # use pd.read_csv to only read the rows that are needed
+        df = pd.read_csv(data_file, converters={"subsets": parse_list, "file_path": parse_list}, skiprows=lambda x: x not in rows_range)
+        
+    else:
+        df = pd.read_csv(data_file, converters={"subsets": parse_list, "file_path": parse_list})
+
+
     ufo_df = pd.DataFrame(columns=['family', 'subsets', 'category', 'master', 'variants'])
     for _, row in tqdm(df.iterrows(), total=df.shape[0], desc="Converting to UFO..."):
+        # print row keys
         master = None
         file_path = row["file_path"]
         family = row["family"]
