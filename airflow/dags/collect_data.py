@@ -11,12 +11,14 @@ from data.data_storage import FontStorage
 from data.data_collection import get_fonts_info, filter_fonts, download_fonts, convert_df_to_ufo, upload_ufos
 
 def google_fonts_api_func():
+    fonts_df = get_fonts_info(Variable.get('GOOGLE_FONTS_API_KEY'))
+    
     # code to download google fonts
     fonts_path = "data/raw/fonts/"
     data_file = "download_data.csv"
-    fonts_df = get_fonts_info(Variable.get('GOOGLE_FONTS_API_KEY'))
-    fonts_to_download = filter_fonts(fonts_df, subsets=['hebrew', 'arabic'])
-    fonts_to_download = download_fonts(fonts_to_download, os.path.join(fonts_path, "GF"))
+    filtered_df = filter_fonts(fonts_df, subsets=['hebrew', 'arabic'])
+    
+    fonts_to_download = download_fonts(filtered_df, os.path.join(fonts_path, "GF"))
     fonts_to_download.to_csv(data_file, index=False)
 
 
@@ -45,11 +47,6 @@ def upload_to_mongoDB_func():
         #data_engine.add_ufo_font(ufo_path, family, variant)
     except Exception as e:
         print(f"Error connecting to MongoDB -- {e}")
-
-
-def fetch_glyph_dataset_func():
-    # code to fetch glyph dataset
-    pass
 
 def on_failure_callback(**context):
     print(f"Task {context['task_instance_key_str']} failed.")

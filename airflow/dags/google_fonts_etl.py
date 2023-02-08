@@ -8,6 +8,7 @@ from datetime import datetime
 import data.data_collection as font_downloader
 import numpy as np
 import pandas as pd
+import json
 # Initialize the DAG
 
 def get_start_end_rows(num_parallel_tasks, task_index, num_rows):
@@ -42,7 +43,7 @@ with DAG(
         schedule_interval="@daily", 
         catchup=False,
         params={
-            'num_fonts' : 4,
+            'num_fonts' : 6,
             'categories' : ["sans-serif"],
             'subsets' : ['hebrew', 'arabic'],
             'font_folder' : "google_fonts",
@@ -113,25 +114,28 @@ with DAG(
 
         # Convert the fonts to UFO format
         ufo_df = font_downloader.convert_df_to_ufo(downloaded_df.iloc[rows_range], params['font_folder'])
-        # save task_index and ufo_df to csv
-        ufo_df.to_csv(f"ufo_df_{task_index}.csv")
+        # return ufo_df as json
+        return ufo_df.to_json()
 
     @task
-    def unite_ufo_df(num_tasks, **context):
-        params = context['params']
+    def unite_ufo_df(num_tasks, ufo_dfs, **context):
         ufo_df = pd.DataFrame()
         for i in range(num_tasks):
-            df_i = pd.read_csv(f"ufo_df_{i}.csv")
+            df_i = pd.DataFrame.from_dict(json.loads(ufo_dfs[i]))
             print(f"Task {i} UFOs: {len(df_i)}")
             print(df_i.head())
             ufo_df = pd.concat([ufo_df, df_i])
         print("United UFOs, total number of UFOs: ", len(ufo_df))
+        params = context['params']
         ufo_df.to_csv(params['ufo_file'])
 
     # Create transform task group
     @task_group(group_id='transform')
     def transform(num_tasks):
-        [transform_task(num_tasks, i) for i in range(num_tasks)] >> unite_ufo_df(num_tasks)
+        t_group = [transform_task(num_tasks, i) for i in range(num_tasks)]
+
+        unite_ufo_df(num_tasks, t_group)
+        #return { 'ufo_df': t_group}
 
     # Define the load task
     @task
@@ -149,4 +153,4 @@ with DAG(
 
     # Define the DAG dependencies
     n = dag.params['num_parallel_tasks']
-    extract(n * 2) >> transform(n) >> load()
+    extract(n + 1) >> transform(n) >> load()
