@@ -1,14 +1,13 @@
 from airflow import DAG
 from airflow.decorators import task, task_group
 from airflow.models import Variable
-from airflow.operators.python import PythonOperator, get_current_context
-from airflow.utils.task_group import TaskGroup
-from airflow.providers.mongo.hooks.mongo import MongoHook
+from data.mongo_utils import get_ufo_collection
 from datetime import datetime
-import data.data_collection as font_downloader
-import numpy as np
+import data.data_collection as data_collection
 import pandas as pd
 import json
+import os
+import shutil
 # Initialize the DAG
 
 def get_start_end_rows(num_parallel_tasks, task_index, num_rows):
@@ -44,11 +43,14 @@ with DAG(
         catchup=False,
         params={
             'num_fonts' : 6,
-            'categories' : ["sans-serif"],
+            'categories' : None,
             'subsets' : ['hebrew', 'arabic'],
             'font_folder' : "google_fonts",
-            'info_file' : 'google_fonts.csv',
-            'ufo_file' : 'ufo_data.csv',
+            'info_folder' : 'fonts_info',
+            'info_file' : 'fonts_info/fonts_info.csv',
+            'downloaded_file' : 'fonts_info/downloaded_fonts.csv',
+            'filtered_info_file' : 'fonts_info/filtered_fonts_info.csv',
+            'ufo_file' : 'fonts_info/ufo_data.csv',
             'num_parallel_tasks' : 2
         }
     ) as dag:
@@ -57,40 +59,49 @@ with DAG(
     @task
     def get_fonts_info(**context):
         params = context['params']
-        fonts_df = font_downloader.get_fonts_info(Variable.get('GOOGLE_FONTS_API_KEY'))
+
+        if not os.path.exists(params['info_folder']):
+            os.mkdir(params['info_folder'])
+        
+        fonts_df = data_collection.get_fonts_info(Variable.get('GOOGLE_FONTS_API_KEY'))
+        print(f"Total fonts: {len(fonts_df)}")
         fonts_df.to_csv(params['info_file'])
 
     @task
     def filter_fonts(**context):
         params = context['params']
         fonts_df = pd.read_csv(params['info_file'])
-        filtered_df = font_downloader.filter_fonts(fonts_df, num_fonts=params['num_fonts'], 
+        filtered_df = data_collection.filter_fonts(fonts_df, num_fonts=params['num_fonts'], 
                                                     categories=params['categories'],
-                                                    subsets=params['subsets'])
-        filtered_df.to_csv(params['info_file'])
+                                                    subsets=params['subsets'],
+                                                    ufo_collection=get_ufo_collection("FontsFramework", "UFOs"))
+        print(filtered_df.head())
+        filtered_df.to_csv(params['filtered_info_file'])
 
     @task
     def download_fonts_task(num_tasks, task_index, **context):
         params = context['params']
-        filtered_df = pd.read_csv(params['info_file'])
+        filtered_df = pd.read_csv(params['filtered_info_file'])
         rows_range = get_start_end_rows(num_tasks, task_index, len(filtered_df))
         # Log the task index and the rows range
         print(f"Task index: {task_index}, rows range: {rows_range}")
         # Download the fonts
-        downloaded_df = font_downloader.download_fonts(filtered_df.iloc[rows_range], params['font_folder'])
+        downloaded_df = data_collection.download_fonts(filtered_df.iloc[rows_range], params['font_folder'])
+
+        print(f"Task {task_index} downloaded fonts: {len(downloaded_df)}")
+
         # save task_index and downloaded_df to csv
-        downloaded_df.to_csv(f"downloaded_df_{task_index}.csv")
+        downloaded_df.to_csv(f"{params['info_folder']}/downloaded_df_{task_index}.csv")
 
     # Unite all downloaded_df to one csv file
     @task
-    def unite_downloaded_df(num_task, **context):
+    def unite_downloaded_df(num_tasks, **context):
         params = context['params']
         downloaded_df = pd.DataFrame()
-        num_tasks = params['num_parallel_tasks']
         for i in range(num_tasks):
-            downloaded_df = pd.concat([downloaded_df, pd.read_csv(f"downloaded_df_{i}.csv")])
+            downloaded_df = pd.concat([downloaded_df, pd.read_csv(f"{params['info_folder']}/downloaded_df_{i}.csv")])
         print(f"Total downloaded fonts: {len(downloaded_df)}")
-        downloaded_df.to_csv(params['info_file'])
+        downloaded_df.to_csv(params['downloaded_file'])
 
     @task_group
     def download_fonts(num_tasks):
@@ -100,11 +111,10 @@ with DAG(
     def extract(num_tasks):
         get_fonts_info() >> filter_fonts() >> download_fonts(num_tasks) >> unite_downloaded_df(num_tasks)
 
-    # Define the transform task
     @task
     def transform_task(num_tasks, task_index, **kwargs):
         params = kwargs['params']
-        downloaded_df = pd.read_csv(params['info_file'])
+        downloaded_df = pd.read_csv(params['downloaded_file'])
 
         rows_range = get_start_end_rows(num_tasks, task_index, len(downloaded_df))
         
@@ -113,7 +123,7 @@ with DAG(
         print(f"Task {task_index} downloaded fonts: {len(downloaded_df)}")
 
         # Convert the fonts to UFO format
-        ufo_df = font_downloader.convert_df_to_ufo(downloaded_df.iloc[rows_range], params['font_folder'])
+        ufo_df = data_collection.convert_df_to_ufo(downloaded_df.iloc[rows_range], params['font_folder'])
         # return ufo_df as json
         return ufo_df.to_json()
 
@@ -141,14 +151,15 @@ with DAG(
     @task
     def load(**context):
         params = context['params']
-        # Connect to the MongoDB sharded cluster
-        hook = MongoHook(mongo_conn_id='mongo_default')
-        client = hook.get_conn()
-        db = client.FontsFramework
-        ufo_collection = db.ufo_collection
+        # Get the UFO collection
+        ufo_collection = get_ufo_collection("FontsFramework", "UFOs")
         
         # Upload the UFO files to MongoDB
-        failed_cases = font_downloader.upload_ufos(params['ufo_file'] ,ufo_collection)
+        failed_cases = data_collection.upload_ufos(params['ufo_file'] ,ufo_collection)
+
+        # Cleanup the info folder
+        shutil.rmtree(params['info_folder'])
+
         return failed_cases
 
     # Define the DAG dependencies

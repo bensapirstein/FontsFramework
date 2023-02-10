@@ -43,7 +43,7 @@ def get_fonts_info(api_key: str) -> pd.DataFrame:
     return pd.DataFrame(fonts['items'])
 
 
-def filter_fonts(df: pd.DataFrame, num_fonts: int=None, categories: list=None, subsets: list=None, ufos_collection: Collection=None) -> pd.DataFrame:
+def filter_fonts(df: pd.DataFrame, num_fonts: int=None, categories: list=None, subsets: list=None, families: list=None, ufo_collection: Collection=None) -> pd.DataFrame:
     """
     This function selects a subset of fonts from the specified DataFrame based on the categories and subsets.
     It returns a random sample of the specified number of fonts.
@@ -65,15 +65,22 @@ def filter_fonts(df: pd.DataFrame, num_fonts: int=None, categories: list=None, s
 
     # Filter the font DataFrame by the specified categories
     if categories:
+        print(f"Selected categories: {categories}.")
         df = df[df['category'].isin(categories)]
 
     # Filter the font DataFrame by the specified subsets
     if subsets:
+        print(f"Selected subsets: {subsets}.")
         df = df[df["subsets"].apply(lambda x: any(lang in x for lang in subsets))]
 
-    if ufos_collection:
+    # Filter the font DataFrame by the specified font families
+    if families:
+        print(f"Selected families: {families}.")
+        df = df[df['family'].isin(families)]
+
+    if ufo_collection:
         # The function removes fonts that are already present in the specified MongoDB collection
-        existing_families = [doc['family'] for doc in ufos_collection.find()]
+        existing_families = [doc['family'] for doc in ufo_collection.find()]
 
         print(f"The following families already exist in the MongoDB collection and will be dropped: "
               f"{[family for family in existing_families if family in df['family'].tolist()]}")
