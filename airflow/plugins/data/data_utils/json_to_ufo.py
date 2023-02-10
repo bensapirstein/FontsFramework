@@ -74,6 +74,7 @@ def json_to_ufo(ufo_json: dict, ufo_path):
     for plist_file, plist_data in ufo_json.items():
         if plist_file == 'glyphs':
             continue
+        plist_file = plist_file.replace('_', '.')
         plist_path = f'{ufo_path}/{plist_file}'
         with open(plist_path, 'wb') as f:
             plistlib.dump(plist_data, f)

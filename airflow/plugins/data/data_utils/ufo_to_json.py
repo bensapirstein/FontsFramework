@@ -86,12 +86,13 @@ def ufo_to_json(ufo_path):
         if not os.path.exists(f'{ufo_path}/{plist_file}'):
             continue
         with open(f'{ufo_path}/{plist_file}', 'rb') as f:
-            plist_data[plist_file] = plistlib.load(f)
-
+            # replace dots in keys with underscores (to be compatible with MongoDB)
+            k = plist_file.replace('.', '_')
+            plist_data[k] = plistlib.load(f)
     # Read in GLIF files and convert to dictionaries
     glyph_data = {}
 
-    for glyph_name, glif_fname in plist_data['glyphs/contents.plist'].items():
+    for glyph_name, glif_fname in plist_data['glyphs/contents_plist'].items():
         # Read in GLIF file and convert to dictionary
         with open(f'{ufo_path}/glyphs/{glif_fname}', 'r') as f:
             glif_fn_no_extension = ".".join(glif_fname.split('.')[:-1])
@@ -112,8 +113,9 @@ def ufo_to_json(ufo_path):
 
 if "__main__" == __name__:
     # Example usage
-    ufo_path = '../../../data/processed/fonts/UFO/Alef/Alef-Regular.ufo'
-    json_string = ufo_to_json(ufo_path)
+    ufo_path = '../../../../data/processed/fonts/UFO/Alef/Alef-Regular.ufo'
+    ufo_dict = ufo_to_json(ufo_path)
 
-    with open('Alef-Regular.json', 'w') as outfile:
-        outfile.write(json_string)
+    # Save to JSON file
+    with open(f'{ufo_path}/../Alef-Regular.json', 'w') as f:
+        json.dump(ufo_dict, f, indent=4)
