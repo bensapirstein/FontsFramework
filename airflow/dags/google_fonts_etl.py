@@ -41,6 +41,7 @@ with DAG(
         start_date=datetime(2023, 1, 1),
         schedule_interval="@daily", 
         catchup=False,
+        max_active_tasks=8, # We will run a task per font so we need to limit the number of active tasks
         params={
             'num_fonts' : 6,
             'categories' : None,
@@ -146,6 +147,9 @@ with DAG(
 
         unite_ufo_df(num_tasks, t_group)
         #return { 'ufo_df': t_group}
+
+    # TODO: Change load to be a task group where each task uploads a single UFO, and the task group waits for all tasks to finish
+    # there could only be N tasks running at the same time, where N is the number of parallel tasks
 
     # Define the load task
     @task
