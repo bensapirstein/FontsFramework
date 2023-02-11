@@ -100,15 +100,13 @@ def ufo_to_json(ufo_path):
 
     if os.path.exists(f'{ufo_path}/features.fea'):
         with open(f'{ufo_path}/features.fea', "rb") as f:
-            plist_data['features.fea'] = f.read()
-
+            plist_data['features_fea'] = f.read()
 
     # Combine all data into a single dictionary
     ufo_data = {
         **plist_data,
         'glyphs': glyph_data
     }
-
     return ufo_data
 
 if "__main__" == __name__:

@@ -7,8 +7,7 @@ from airflow.providers.mongo.hooks.mongo import MongoHook
 from datetime import datetime,timedelta
 from airflow.models import Variable
 
-from data.data_storage import FontStorage
-from data.data_collection import get_fonts_info, filter_fonts, download_fonts, convert_df_to_ufo, upload_ufos
+from include.data_collection import get_fonts_info, filter_fonts, download_fonts, convert_df_to_ufo, upload_ufos
 
 def google_fonts_api_func():
     fonts_df = get_fonts_info(Variable.get('GOOGLE_FONTS_API_KEY'))

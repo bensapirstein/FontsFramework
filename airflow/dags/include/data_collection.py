@@ -6,8 +6,8 @@ from tqdm import tqdm
 import json
 import zipfile
 import requests
-from data.data_utils.font_to_ufo import ttf_to_ufo, var_ttf_to_ufo
-from data.data_utils.ufo_to_json import ufo_to_json
+from include.data_utils.font_to_ufo import ttf_to_ufo, var_ttf_to_ufo
+from include.data_utils.ufo_to_json import ufo_to_json
 from pymongo.collection import Collection
 
 def get_fonts_info(api_key: str) -> pd.DataFrame:
@@ -220,6 +220,8 @@ def upload_ufos(data_file, ufo_collection):
             try:
                 # Open the UFO file for the font
                 ufo_json = ufo_to_json(ufo_file_path)
+                print("Keys: ")
+                print(ufo_json.keys())
                 ufo_collection.insert_one({'family': family, 'variant': variant, 'data': ufo_json})
             except Exception as e:
                 failed_cases.append({'family': family, 'variant': variant, 'error': str(e)})

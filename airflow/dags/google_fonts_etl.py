@@ -1,9 +1,9 @@
 from airflow import DAG
 from airflow.decorators import task, task_group
 from airflow.models import Variable
-from data.mongo_utils import get_ufo_collection
+from include.mongo_utils import get_ufo_collection
 from datetime import datetime
-import data.data_collection as data_collection
+import include.data_collection as data_collection
 import pandas as pd
 import json
 import os
