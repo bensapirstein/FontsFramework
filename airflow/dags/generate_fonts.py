@@ -1,13 +1,6 @@
-# An airflow DAG to fetch fonts from mongodb in ufo format and
-#  generate fonts in a variety of formats: woff, woff2, ttf, otf, eot, svg
-# Then upload the generated fonts to mongodb in the same collection as the ufo.
-
-# The DAG object; we'll need this to instantiate a DAG
 from airflow import DAG
-# Operators; we need this to operate!
 from airflow.operators.python_operator import PythonOperator
 from airflow.operators.bash_operator import BashOperator
-from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.python_operator import BranchPythonOperator
 from datetime import datetime
 
