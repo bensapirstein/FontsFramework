@@ -46,13 +46,14 @@ with DAG(
     def enrich_fonts(**context):
         ufo_collection = get_ufo_collection("FontsFramework", "UFOs")
         font_ids = \
-            list(ufo_collection.find({"glyph_aggregated_data": {"$exists": False}})\
+            list(ufo_collection.find({"granulated_data": {"$exists": False}})\
             .limit(context["params"]["max_fonts_per_task"]))
 
         for ufo in font_ids:
             print(f"Enriching {ufo['family']} {ufo['variant']}...")
-            glyph_stats = enrich_data(ufo)
-            print(glyph_stats)
+            font_info, glyphs_stats = enrich_data(ufo)
+            # update mongo
+            ufo_collection.update_one({"_id": ufo["_id"]}, {"$set": {"granulated_data" : {"font_info": font_info, "glyphs_data": glyphs_stats.to_dict()}}})
 
     # task to update the mongo collection
     @task()

@@ -1,13 +1,9 @@
 from defcon import Font
 from include.data_utils.json_to_ufo import json_to_ufo
 from include.data_utils.glyph_utils import glyph_stats, glyph_to_svg_path
+import pandas as pd
 
-def enrich_data(font):
-    ufo_path = f"/tmp/{font['family']}-{font['variant']}.ufo"
-    json_to_ufo(font["data"], ufo_path)
-    # get the font
-    font = Font(ufo_path)
-    
+def extract_glyphs_data(font):
     # Create a list to store the glyph data
     glyph_data = []
 
@@ -22,10 +18,10 @@ def enrich_data(font):
 
         # Create a dictionary to store the glyph data
         glyph_dict = {
-            'glyph_name': glyph_name,
-            'svg': glyph_to_svg_path(glyph),
+            #'glyph_name': glyph_name,
+            #'svg': glyph_to_svg_path(glyph),
             'advance': glyph.width,
-            'unicode' : glyph.unicode,
+            #'unicode' : glyph.unicode,
             'meanX' : meanX,
             'meanY' : meanY,
             'stddevX' : stddevX,
@@ -39,4 +35,30 @@ def enrich_data(font):
         # Add the glyph data to the list
         glyph_data.append(glyph_dict)
     
-    return glyph_data
+    return pd.DataFrame(glyph_data).agg(['mean', 'std'])
+
+def granulate_glyphs_data(glyphs_data):
+    glyphs_data.agg()
+
+def enrich_data(font):
+    
+    info = font['data']['fontinfo_plist']
+    font_info = {
+        'ascender' : info['ascender'],
+        'capHeight' : info['capHeight'],
+        'descender' : info['descender'],
+        'italicAngle' : info['italicAngle'],
+        'xHeight' : info['xHeight'],
+    }
+    # TODO: normalize glyph using unitsPerEm 
+    unitsPerEm = info['unitsPerEm'] # 1000 or 2048
+
+    ufo_path = f"/tmp/{font['family']}-{font['variant']}.ufo"
+    json_to_ufo(font["data"], ufo_path)
+
+    # convert to defcon font
+    font = Font(ufo_path)
+
+    glyph_data = extract_glyphs_data(font)
+    
+    return font_info, glyph_data
