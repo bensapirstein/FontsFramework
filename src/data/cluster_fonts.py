@@ -19,14 +19,14 @@ from sklearn.metrics import pairwise_distances_argmin
 
 def find_num_clusters(df, n_clusters = 10, rseed=2):
     sil_score_max = -1 
-    for n_clusters in range(2,20):
+    for n_clusters in range(2,10):
         model = KMeans(n_clusters = n_clusters, init='k-means++', max_iter=100, n_init=1)
         labels = model.fit_predict(df)
         sil_score = silhouette_score(df, labels)
         if sil_score > sil_score_max:
             sil_score_max = sil_score
             best_n_clusters = n_clusters
-        return best_n_clusters
+    return best_n_clusters
 
 class DBSCANWrapper(DBSCAN):
     def __init__(self,     
@@ -93,7 +93,7 @@ class ModelWrapper:
         """
         return data.fillna(0)._get_numeric_data()
 
-    def build_model(self, data):
+    def build_model(self, data, n_clusters = 'auto'):
         """
         Build a cluster model for the Outliers wafers.
 
@@ -111,7 +111,8 @@ class ModelWrapper:
         """
         data_prep = self.perp(data)
         if self.model_type == ModelType.KMeans:
-            self.model = KMeans(n_clusters=find_num_clusters(data_prep), random_state=0, init='k-means++', max_iter=100, n_init=1)
+            if n_clusters == 'auto': n_clusters = find_num_clusters(data_prep)
+            self.model = KMeans(n_clusters=n_clusters, random_state=0, init='k-means++', max_iter=100, n_init=1)
         else:
             self.model = DBSCANWrapper(eps=2)
 
@@ -148,7 +149,7 @@ class ModelWrapper:
         return self.model.predict(self.perp(match_features(data))[self.feature_names_list])
 
 
-def train_model(df: pandas.DataFrame, model_type: ModelType):
+def train_model(df: pandas.DataFrame, model_type: ModelType, n_clusters = 'auto'):
     model = ModelWrapper(model_type)
-    model.build_model(df)
+    model.build_model(df, n_clusters = n_clusters)
     return model
