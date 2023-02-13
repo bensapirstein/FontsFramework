@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import matplotlib.transforms as transforms
 import arabic_reshaper
-from data_utils import glyph_to_svg_path
+from data.data_utils.glyph_utils import glyph_to_svg_path
 from bidi.algorithm import get_display
 
 matplotlib.rcParams['figure.figsize'] = (12, 12)

@@ -1,5 +1,5 @@
-from defcon import Font
 from ufo2ft import compileOTF
+from defcon import Font
 
 def ufo_to_ttf(ufo_file_path, ttf_file_path):
     ufo = Font(ufo_file_path)

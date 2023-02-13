@@ -1,20 +1,24 @@
 import json
 import pymongo
-from data_utils.ufo_to_json import ufo_to_json
-from data_utils.json_to_ufo import json_to_ufo
-from data_utils.ufo_to_ttf import ufo_to_ttf
+from data.data_utils.ufo_to_json import ufo_to_json
+from data.data_utils.json_to_ufo import json_to_ufo
 
-class DataLake:
-    def __init__(self, mongos_port: int):
+#Data management imports
+from defcon import Font
+from ufo2ft import compileOTF
+
+class FontStorage:
+    def __init__(self, ufo_collection: int):
         """
         Initializes a new instance of the DataLake class.
 
         Parameters:
         - mongos_port (int): The port number of the MongoDB instance to connect to.
         """
-        self.client = pymongo.MongoClient(port=mongos_port)
-        self.ufo_fonts = self.client['ufo']['ufo_fonts']
-        self.ufo_fonts.create_index([('family', pymongo.ASCENDING), ('variant', pymongo.ASCENDING)], unique=True)
+        self.ufo_collection = ufo_collection
+        # self.client = pymongo.MongoClient(port=mongos_port)
+        # self.ufo_fonts = self.client['ufo']['ufo_fonts']
+        # self.ufo_fonts.create_index([('family', pymongo.ASCENDING), ('variant', pymongo.ASCENDING)], unique=True)
 
     def add_ufo_font(self, ufo_path: str, family: str, variant: str):
         """
@@ -74,7 +78,7 @@ if "__main__" == __name__:
     ufo_path = f'../../data/processed/fonts/UFO/{family}/{family}-{variant}.ufo'
 
     # Connect to the MongoDB sharded cluster
-    data_engine = DataLake(27017)
+    data_engine = FontStorage(27017)
 
     data_engine.delete_ufo_font(family, variant)
 

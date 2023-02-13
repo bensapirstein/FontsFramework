@@ -72,8 +72,9 @@ def json_to_ufo(ufo_json: dict, ufo_path):
 
     # write the plist files
     for plist_file, plist_data in ufo_json.items():
-        if plist_file == 'glyphs':
+        if plist_file == 'glyphs' or plist_file == 'features_fea':
             continue
+        plist_file = plist_file.replace('_', '.')
         plist_path = f'{ufo_path}/{plist_file}'
         with open(plist_path, 'wb') as f:
             plistlib.dump(plist_data, f)
@@ -85,6 +86,12 @@ def json_to_ufo(ufo_json: dict, ufo_path):
         glif_path = f'{glyphs_path}/{glyph_name}.glif'
         with open(glif_path, 'w') as f:
             f.write(glif_xml_string)
+
+    # write the features.fea file
+    if 'features_fea' in ufo_json:
+        features_fea_path = f'{ufo_path}/features.fea'
+        with open(features_fea_path, 'w') as f:
+            f.write(ufo_json['features_fea'])
 
 
 def main():
