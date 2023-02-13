@@ -14,8 +14,8 @@ function GlyphsComp() {
   {
     let resp = utils.getGlyphsByGlyphName(glyphName)
     resp.then(data => {
-      console.log(data.data)
-      setGlyphs(data.data.glyphs);
+    console.log(data.data)
+    setGlyphs(data.data.glyphs);
     setActualGlyphField(data.data.actualGlyphName)
     })
     
@@ -34,7 +34,7 @@ function GlyphsComp() {
       {
         glyphs.map(item =>
           {
-            return <GlyphComp glyphData={item} key={item._id} />
+            return <GlyphComp glyphData={item} placeHolder={actualGlyphField} key={item._id} />
           })
       }
 
