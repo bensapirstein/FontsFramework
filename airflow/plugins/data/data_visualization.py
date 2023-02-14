@@ -10,6 +10,15 @@ from bidi.algorithm import get_display
 
 matplotlib.rcParams['figure.figsize'] = (12, 12)
 
+def plot_glyph(glyph, ax):
+    svg = glyph_to_svg_path(glyph)
+    if svg:
+        patch_path = patches.PathPatch(parse_path(svg), facecolor="#f5f5f5")
+        plt.gcf().gca().add_patch(patch_path)
+        # Apply the necessary transformations to the glyph
+        transform = transforms.Affine2D().translate(glyph.width, 0)
+        patch_path.set_transform(transform + ax.transData)
+
 def plot_text(font, text):
 
     # create a figure and an axis
@@ -21,16 +30,8 @@ def plot_text(font, text):
     for i, char in enumerate(text):
         glyph_name = font.unicodeData[ord(char)][0]
         glyph = font[glyph_name]
-        svg = glyph_to_svg_path(glyph)
-
-        kerning_value = 0
-
-        if svg:
-            patch_path = patches.PathPatch(parse_path(svg), facecolor="#f5f5f5")
-            plt.gcf().gca().add_patch(patch_path)
-            # Apply the necessary transformations to the glyph
-            transform = transforms.Affine2D().translate(x_pos + kerning_value, 0)
-            patch_path.set_transform(transform + ax.transData)
+        plot_glyph(glyph, ax)
+        kerning_value = 0 # font.kerning.get((glyph_name, font.unicodeData[ord(text[i+1])][0]), 0)
 
         # Update the current x position
         x_pos += glyph.width + kerning_value
