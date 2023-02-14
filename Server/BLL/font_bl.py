@@ -2,6 +2,10 @@ from cmath import log
 from pymongo import MongoClient
 from bson import ObjectId
 
+svg_path_format="""<svg>
+  <path d="%s" />
+  Sorry, your browser does not support inline SVG.
+</svg>"""
 
 class FontBL:
     def __init__(self):
@@ -35,20 +39,29 @@ class FontBL:
     def get_all_fonts_With_GlyphName(self,glyphName):
         field_name_plist = "data.glyphs/contents_plist.{}".format(glyphName)
         query_plist = {field_name_plist: {"$exists": True, "$ne": None}}
+
+        unitsPerEm_query = {"data.fontinfo_plist.unitsPerEm": {"$exists": True, "$ne": None}}
+
         projection_plist = {"_id": 1, "family": 1, "variant": 1, field_name_plist: 1}
         glyphNamesPList = list(self.__collection.find(query_plist,projection_plist))
         # data.glyphs/contents_plist.A
         if len(glyphNamesPList) == 0:
             return glyphNamesPList
         
-        actual_GlyphFileName = glyphNamesPList[0]['data']['glyphs/contents_plist'][glyphName]
+        glif_filename = glyphNamesPList[0]['data']['glyphs/contents_plist'][glyphName]
 
-        actual_Glyph_Str = actual_GlyphFileName[:actual_GlyphFileName.find(".glif")]
+        glif_name = glif_filename.split(".")[0]
 
-        field_name_glyph = "data.glyphs.{}".format(actual_Glyph_Str)
+        field_name_glyph = "data.glyphs.{}".format(glif_name)
         query_glyph = {field_name_glyph: {"$exists": True, "$ne": None}}
-        projection_glyph = {"_id": 1, "family": 1, "variant": 1, field_name_glyph: 1}
+        projection_glyph = {"_id": 1, "family": 1, "variant": 1, field_name_glyph: 1,\
+                        "data.fontinfo_plist.unitsPerEm":1}
         glypsList = list(self.__collection.find(query_glyph,projection_glyph))
-        resp = {'glyphs':glypsList,'actualGlyphName':actual_Glyph_Str}
-        # glyph name 
+        resp = {'glyphs':glypsList,'Glyph Name':glif_name}
+        # convert to svg path
+        for glyph_json in resp['glyphs']:
+            glyph = glyph_json_to_Glyph(glyph_json)
+            svg_path = svg_path_format % glyph_to_svg_path(glyph, unitsPerEm)
+            # add svg path to response
+            
         return resp
