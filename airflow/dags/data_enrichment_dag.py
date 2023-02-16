@@ -63,8 +63,12 @@ with DAG(
                     print(f"Converting {glif_name}...")
                     print(glyph_json)
                     glyph = glyph_json_to_Glyph(glyph_json)
-                    svg = glyph_to_svg_path(glyph, unitsPerEm)
-                    glyphs_svgs[glif_name] = svg
+                    try:
+                        svg = glyph_to_svg_path(glyph, unitsPerEm)
+                        glyphs_svgs[glif_name] = svg
+                    except Exception as e:
+                        print(f"Error converting {glif_name}...")
+                        print(e)
                 # update mongo
                 ufo_collection.update_one({"_id": ufo["_id"]}, {"$set": {"glyphs_svg" : glyphs_svgs}})
                     

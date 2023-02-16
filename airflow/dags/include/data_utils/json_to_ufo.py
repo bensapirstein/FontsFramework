@@ -100,7 +100,17 @@ def glyph_json_to_Glyph(glyph_json: dict) -> Glyph:
                 pointPen.addPoint((point_dict['x'], point_dict['y']), point_dict.get('type', None))
             pointPen.endPath()
         for component_dict in outline_dict.get('component', []):
-            pointPen.addComponent(**component_dict)
+            # extract transformation data with default values (xScale=1, xyScale=0, yxScale=0, yScale=1, xOffset=0, yOffset=0)
+            xScale = component_dict.pop('xScale', 1)
+            xyScale = component_dict.pop('xyScale', 0)
+            yxScale = component_dict.pop('yxScale', 0)
+            yScale = component_dict.pop('yScale', 1)
+            xOffset = component_dict.pop('xOffset', 0)
+            yOffset = component_dict.pop('yOffset', 0)
+
+            baseGlyphName = component_dict.pop('base')
+            # add the component
+            pointPen.addComponent(baseGlyphName, (xScale, xyScale, yxScale, yScale, xOffset, yOffset))
 
     return glyph
 
@@ -214,11 +224,13 @@ def json_to_ufo(ufo_json: dict, ufo_path):
 
 def main():
     # load the JSON object
-    with open('Alef-Regular.json', 'r') as f:
+    with open('Amiri Quran-Regular.json', 'r') as f:
         ufo_json = json.load(f)
 
     # get glyph json for A 
-    glif_name = ufo_json['glyphs/contents_plist']['Aacute'].split('.')[0]
+    glif_name = ufo_json['glyphs/contents_plist']['aAlf.fina.KafAlf.l0']
+    # remove .glif extension
+    glif_name = glif_name[:-5]
     glyph_json = ufo_json['glyphs'][glif_name]
     unitsPerEm = ufo_json['fontinfo_plist']['unitsPerEm']
 
