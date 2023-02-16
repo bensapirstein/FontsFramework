@@ -16,7 +16,7 @@ function GlyphsComp() {
     resp.then(data => {
     console.log(data.data)
     setGlyphs(data.data.glyphs);
-    setActualGlyphField(data.data.actualGlyphName)
+    setActualGlyphField(data.data.GlyphName)
     })
     
   }

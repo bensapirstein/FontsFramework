@@ -8,6 +8,8 @@ function GlyphComp(props) {
 
   const[glyphName,setGlyphName] = useState('')
 
+  const[path,setPath] = useState('')
+
 
   useEffect(() =>
    {
@@ -20,6 +22,10 @@ function GlyphComp(props) {
     setUniCode(props.glyphData.data.glyphs[key].unicode[0].hex)
 
     setGlyphName(props.glyphData.data.glyphs[key].name)
+
+    console.log(props.glyphData.glyphs_svg[key])
+
+    setPath(props.glyphData.glyphs_svg[key])
     
    }, [props.placeHolder] ) // with empty dependency list
 
@@ -36,6 +42,10 @@ function GlyphComp(props) {
       Variant : {props.glyphData.variant} <br/>
       unicode : {uniCode} <br/>
       glyphName : {glyphName} <br/>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 841.9 595.3">
+      
+          <path d={path}/>
+      </svg>
 
     </div>
     <br/>
