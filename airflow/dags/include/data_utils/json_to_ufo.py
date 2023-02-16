@@ -132,12 +132,24 @@ def glyph_json_to_glif(glyph_json: dict) -> str:
     if image is not None:
         image_elem = ET.SubElement(root, 'image')
         for attr, value in image.items():
+            if attr in ['xScale', 'xyScale', 'yxScale', 'yScale', 'xOffset', 'yOffset']:
+                value = str(value)
             image_elem.attrib[attr] = value
 
-    # add the guideline elements
+    # add the anchor elements
+    for anchor_dict in glyph_json.get('anchor', []):
+        anchor_elem = ET.SubElement(root, 'anchor')
+        for attr, value in anchor_dict.items():
+            if attr in ['x', 'y']:
+                value = str(value)
+            anchor_elem.attrib[attr] = value
+
+    # add the guideline elements d
     for guideline_dict in glyph_json.get('guideline', []):
         guideline_elem = ET.SubElement(root, 'guideline')
         for attr, value in guideline_dict.items():
+            if attr in ['x', 'y', 'angle']:
+                value = str(value)
             guideline_elem.attrib[attr] = value
 
     # add the outline element
@@ -151,12 +163,16 @@ def glyph_json_to_glif(glyph_json: dict) -> str:
             for point_dict in contour_dict.get('point', []):
                 point_elem = ET.SubElement(contour_elem, 'point')
                 for attr, value in point_dict.items():
+                    if attr in ['x', 'y']:
+                        value = str(value)
                     point_elem.attrib[attr] = value
 
         # add the component elements
         for component_dict in outline_dict.get('component', []):
             component_elem = ET.SubElement(outline_elem, 'component')
             for attr, value in component_dict.items():
+                if attr in ['xScale', 'xyScale', 'yxScale', 'yScale', 'xOffset', 'yOffset']:
+                    value = str(value)
                 component_elem.attrib[attr] = value
 
     # convert the ElementTree object to an XML string
@@ -202,7 +218,7 @@ def main():
         ufo_json = json.load(f)
 
     # get glyph json for A 
-    glif_name = ufo_json['glyphs/contents_plist']['A'].split('.')[0]
+    glif_name = ufo_json['glyphs/contents_plist']['Aacute'].split('.')[0]
     glyph_json = ufo_json['glyphs'][glif_name]
     unitsPerEm = ufo_json['fontinfo_plist']['unitsPerEm']
 

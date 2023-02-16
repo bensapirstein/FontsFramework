@@ -40,7 +40,7 @@ def extract_glyphs_data(font):
 def granulate_glyphs_data(glyphs_data):
     glyphs_data.agg()
 
-def enrich_data(font):
+def granulate_data(font):
     
     info = font['data']['fontinfo_plist']
     font_info = {

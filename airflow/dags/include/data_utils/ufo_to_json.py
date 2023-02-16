@@ -3,7 +3,9 @@ import os
 
 import xml.etree.ElementTree as ET
 import json
-
+# use literal_eval to convert strings to numbers
+# literal_eval will choose the correct type between int or float automatically
+from ast import literal_eval
 
 def glif_to_json(glif_xml_string: str) -> dict:
     # parse the XML string
@@ -20,8 +22,8 @@ def glif_to_json(glif_xml_string: str) -> dict:
     advance = root.find('advance')
     if advance is not None:
         glyph['advance'] = {
-            'width': advance.attrib.get('width', 0),
-            'height': advance.attrib.get('height', 0)
+            'width': literal_eval(advance.attrib.get('width', '0')),
+            'height': literal_eval(advance.attrib.get('height', '0'))
         }
 
     # add the unicode elements to the JSON object
@@ -39,13 +41,27 @@ def glif_to_json(glif_xml_string: str) -> dict:
     if image is not None:
         glyph['image'] = {}
         for attr, value in image.attrib.items():
+            if attr in ['xScale', 'xyScale', 'yxScale', 'yScale', 'xOffset', 'yOffset']:
+                value = literal_eval(value)
             glyph['image'][attr] = value
+
+    # add the anchor elements to the JSON object
+    glyph['anchor'] = []
+    for anchor in root.findall('anchor'):
+        anchor_dict = {}
+        for attr, value in anchor.attrib.items():
+            if attr in ['x', 'y']:
+                value = literal_eval(value)
+            anchor_dict[attr] = value
+        glyph['anchor'].append(anchor_dict)
 
     # add the guideline elements to the JSON object
     glyph['guideline'] = []
     for guideline in root.findall('guideline'):
         guideline_dict = {}
         for attr, value in guideline.attrib.items():
+            if attr in ['x', 'y', 'angle']:
+                value = literal_eval(value)
             guideline_dict[attr] = value
         glyph['guideline'].append(guideline_dict)
 
@@ -63,6 +79,8 @@ def glif_to_json(glif_xml_string: str) -> dict:
             for point in contour.findall('point'):
                 point_dict = {}
                 for attr, value in point.attrib.items():
+                    if attr in ['x', 'y']:
+                        value = literal_eval(value)
                     point_dict[attr] = value
                 contour_dict['point'].append(point_dict)
             glyph['outline']['contour'].append(contour_dict)
@@ -71,6 +89,8 @@ def glif_to_json(glif_xml_string: str) -> dict:
         for component in outline.findall('component'):
             component_dict = {}
             for attr, value in component.attrib.items():
+                if attr in ['xScale', 'xyScale', 'yxScale', 'yScale', 'xOffset', 'yOffset']:
+                    value = literal_eval(value)
                 component_dict[attr] = value
             glyph['outline']['component'].append(component_dict)
 
@@ -115,5 +135,6 @@ if "__main__" == __name__:
     ufo_dict = ufo_to_json(ufo_path)
 
     # Save to JSON file
-    with open(f'{ufo_path}/../Alef-Regular.json', 'w') as f:
+    #with open(f'{ufo_path}/../Alef-Regular.json', 'w') as f:
+    with open(f'Alef-Regular.json', 'w') as f:
         json.dump(ufo_dict, f, indent=4)

@@ -3,7 +3,8 @@ from airflow import DAG
 from airflow.decorators import task, task_group
 from airflow.providers.mongo.hooks.mongo import MongoHook
 from include.mongo_utils import get_ufo_collection
-from include.data_enrichment import enrich_data
+from include.data_enrichment import granulate_data
+from include.data_utils.json_to_ufo import glyph_json_to_Glyph, glyph_to_svg_path
 from datetime import datetime
 
 # These args will get passed on to each operator
@@ -29,21 +30,9 @@ with DAG(
     }
     ) as dag:
 
-    # task to fetch from mongo fonts that weren't enriched yet
-    @task()
-    def get_fonts_from_mongo(**context):
-        # get ufo from mongo
-        ufo_collection = get_ufo_collection("FontsFramework", "UFOs")
-        # get fonts that weren't enriched yet
-        font_ids = list(ufo_collection.find({"glyph_aggregated_data": {"$exists": False}}, {"family": 1, "variant": 1}))
-        print("#############################################")
-        print(font_ids)
-        return {"font_ids": font_ids}
-    
-
     # task to enrich the data
     @task()
-    def enrich_fonts(**context):
+    def granulate_fonts(**context):
         ufo_collection = get_ufo_collection("FontsFramework", "UFOs")
         for i in range(context["params"]["max_fonts_per_task"]):
             print(f"iteration {i}...")
@@ -53,16 +42,31 @@ with DAG(
 
             for ufo in font_ids:
                 print(f"Enriching {ufo['family']} {ufo['variant']}...")
-                font_info, glyphs_stats = enrich_data(ufo)
+                font_info, glyphs_stats = granulate_data(ufo)
                 # update mongo
                 ufo_collection.update_one({"_id": ufo["_id"]}, {"$set": {"granulated_data" : {"font_info": font_info, "glyphs_data": glyphs_stats.to_dict()}}})
 
-    # task to update the mongo collection
     @task()
-    def update_mongo(font):
-        aggregated_data = None
-        # update mongo
+    def convert_to_svg(**context):
         ufo_collection = get_ufo_collection("FontsFramework", "UFOs")
-        ufo_collection.update_one({"_id": font["_id"]}, {"$set": {"data.lib_plist.glyph_aggregated_data": aggregated_data}})
-            
-    enrich_fonts()
+        for i in range(context["params"]["max_fonts_per_task"]):
+            print(f"iteration {i}...")
+            font_ids = \
+                list(ufo_collection.find({"glyphs_svg": {"$exists": False}})\
+                .limit(5))
+
+            for ufo in font_ids:
+                print(f"Converting {ufo['family']} {ufo['variant']}...")
+                unitsPerEm = ufo["data"]["fontinfo_plist"]["unitsPerEm"]
+                glyphs_svgs = {}
+                for glif_name, glyph_json in ufo["data"]["glyphs"].items():
+                    print(f"Converting {glif_name}...")
+                    print(glyph_json)
+                    glyph = glyph_json_to_Glyph(glyph_json)
+                    svg = glyph_to_svg_path(glyph, unitsPerEm)
+                    glyphs_svgs[glif_name] = svg
+                # update mongo
+                ufo_collection.update_one({"_id": ufo["_id"]}, {"$set": {"glyphs_svg" : glyphs_svgs}})
+                    
+    #granulate_fonts()
+    convert_to_svg()
