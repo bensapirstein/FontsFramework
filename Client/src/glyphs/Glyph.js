@@ -1,9 +1,22 @@
 import { useState,useEffect } from 'react';
+import { makeStyles } from '@material-ui/core/styles';
 
+
+const useStyles = makeStyles({
+  root: {
+    maxWidth: 345,
+    borderWidth : "3px",
+    borderColor : "blue",
+    justifyContent: 'center'
+  },
+  media: {
+  
+  },
+});
 
 function GlyphComp(props) {
 
-
+  const classes = useStyles(); 
   const[uniCode,setUniCode] = useState('')
 
   const[glyphName,setGlyphName] = useState('')
@@ -34,17 +47,16 @@ function GlyphComp(props) {
 
   return (
     <div>
-    <div className="App" style={{ width : "400px",borderStyle : "solid", borderColor : "red"}}>
+    <div className="App" style={{ width : "400px",borderStyle : "solid", borderColor : "rebeccapurple"}}>
 
       <h4>Glyph ID : {props.glyphData._id}</h4>
 
       Family : {props.glyphData.family} <br/>
       Variant : {props.glyphData.variant} <br/>
       unicode : {uniCode} <br/>
-      glyphName : {glyphName} <br/>
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 841.9 595.3">
-      
-          <path d={path}/>
+      glyphName : {glyphName} <br/> <br/>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1 1">
+        <path transform='scale(1,-1) translate(0, -1)'  d={path}/>
       </svg>
 
     </div>
