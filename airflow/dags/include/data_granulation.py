@@ -40,24 +40,21 @@ def extract_glyphs_data(font):
 def granulate_glyphs_data(glyphs_data):
     glyphs_data.agg()
 
-def granulate_data(font):
-    
-    info = font['data']['fontinfo_plist']
-    font_info = {
-        'ascender' : info['ascender'],
-        'capHeight' : info['capHeight'],
-        'descender' : info['descender'],
-        'italicAngle' : info['italicAngle'],
-        'xHeight' : info['xHeight'],
-    }
-    # TODO: normalize glyph using unitsPerEm 
-    unitsPerEm = info['unitsPerEm'] # 1000 or 2048
-
-    ufo_path = f"/tmp/{font['family']}-{font['variant']}.ufo"
-    json_to_ufo(font["data"], ufo_path)
+def granulate_data(ufo_path):
 
     # convert to defcon font
     font = Font(ufo_path)
+
+    font_info = {
+        'ascender' : font.info.ascender,
+        'capHeight' : font.info.capHeight,
+        'descender' : font.info.descender,
+        'italicAngle' : font.info.italicAngle,
+        'xHeight' : font.info.xHeight,
+    }
+
+    # TODO: normalize glyph using unitsPerEm 
+    unitsPerEm = font.info.unitsPerEm # 1000 or 2048
 
     glyph_data = extract_glyphs_data(font)
     
