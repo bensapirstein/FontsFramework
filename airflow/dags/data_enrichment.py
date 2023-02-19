@@ -28,7 +28,7 @@ def parse_json(data):
     return json.loads(json_util.dumps(data))
 
 with DAG(
-    "data_granularity_dag",
+    "data_enrichment",
     start_date=datetime(2023, 1, 1),
     schedule_interval="@daily",
     catchup=False,

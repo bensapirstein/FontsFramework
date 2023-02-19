@@ -21,7 +21,7 @@ default_args = {
 }
 
 with DAG(
-        "generate_fonts", 
+        "data_generation", 
         start_date=datetime(2023, 1, 1),
         schedule_interval="@daily", 
         catchup=False,

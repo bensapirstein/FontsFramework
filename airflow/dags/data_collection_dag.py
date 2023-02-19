@@ -51,12 +51,12 @@ def on_failure_callback(**context):
     print(f"Task {context['task_instance_key_str']} failed.")
 
 with DAG(
-    dag_id="collect_data",
+    dag_id="data_collection",
     schedule_interval=None,
     start_date=datetime(2022,10,28),
     catchup=False,
     default_args={
-        "owner": "Ben Fouad Roni",
+        "owner": "Ben Fouad Roni Ilana",
         "retries": 0,
         "retry_delay": timedelta(minutes=5),
         'on_failure_callback': on_failure_callback

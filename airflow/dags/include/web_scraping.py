@@ -7,17 +7,7 @@ import re
 
 
 # CREATE FOLDER
-def handle_fonts(links, urlLink):
-    try:
-        folder_name = input("Enter Folder Name:- ")
-        # folder creation
-        os.mkdir(folder_name)
-
-    # if folder exists with that name, ask another name
-    except:
-        print("Folder Exist with that name!")
-        handle_fonts(links, urlLink)
-
+def handle_fonts(links, urlLink, folder_name):
     # image downloading start
     download_fonts(links, folder_name, urlLink)
 
@@ -87,7 +77,7 @@ def download_fonts(links, folder_name, urlLink):
 
 
 # MAIN FUNCTION START
-def main(url):
+def download_fonts_from_url(url, output_folder):
     # content of URL
     r = requests.get(url)
 
@@ -97,11 +87,4 @@ def main(url):
     # find all  in URL
     links = soup.findAll('link')
     # Call folder create function
-    handle_fonts(links, url)
-
-
-# take url
-url = input("Enter URL:- ")
-
-# CALL MAIN FUNCTION
-main(url)
+    handle_fonts(links, url, output_folder)
