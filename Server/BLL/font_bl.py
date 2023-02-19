@@ -71,7 +71,7 @@ class FontBL:
 
         glif_name = glif_filename.split(".")[0]
 
-        field_name_svg = "glyphs_svg.{}".format(glif_name)
+        field_name_svg = "glyphs_svg.{}.nsvg".format(glyphName)
         field_name_glyph = "data.glyphs.{}".format(glif_name)
         query_glyph = {field_name_glyph: {"$exists": True, "$ne": None},field_name_svg:{"$exists": True, "$ne": None}}
         projection_glyph = {"_id": 1, "family": 1, "variant": 1, field_name_glyph: 1,\

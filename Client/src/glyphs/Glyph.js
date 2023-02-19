@@ -36,9 +36,7 @@ function GlyphComp(props) {
 
     setGlyphName(props.glyphData.data.glyphs[key].name)
 
-    console.log(props.glyphData.glyphs_svg[key])
-
-    setPath(props.glyphData.glyphs_svg[key])
+    setPath(props.glyphData.glyphs_svg[props.glyphData.data.glyphs[key].name].nsvg)
     
    }, [props.placeHolder] ) // with empty dependency list
 
