@@ -35,31 +35,6 @@ with DAG(
         }
     ) as dag:
 
-    @task
-    def woff():
-        # generate woff
-        pass
-
-    @task
-    def woff2():
-        # generate woff2
-        pass
-
-    @task
-    def ttf():
-        # convert ufo to ttf
-        pass
-
-    @task
-    def otf():
-        # generate otf
-        pass        
-
-    @task
-    def upload_formatted_font():
-        # upload fonts to mongo
-        pass
-
     @task_group
     def generate_multilingual_fonts():
         ufo_collection = get_ufo_collection("FontsFramework", "UFOs")
@@ -137,24 +112,62 @@ with DAG(
         results = context['ti'].xcom_pull(key='result_ufos')
         print(results)
         # upload ufo to mongo
+        result_ids = []
         for result in results:
             ufo_json = ufo_to_json(result)
             print(ufo_json)
-            ufo_collection.insert_one(\
+            response = ufo_collection.insert_one(\
                 {\
                     'family': ufo_json['fontinfo_plist']['familyName'], \
                     'variant': ufo_json['fontinfo_plist']['styleName'], \
                     'data': ufo_json, 'subsets': params['multilingual_subsets'] \
                 })
+            result_ids.append(str(response.inserted_id))
+
             # TODO: deduce the subsets from the unified ufos
 
         print("Done uploading ufo")
-        pass
+        context['ti'].xcom_push(key='result_ids', value=result_ids)
 
     @task.branch
     def choose_action(**context):
         return context['params']['action']
         
+    @task
+    def woff():
+        # generate woff
+        pass
+
+    @task
+    def woff2():
+        # generate woff2
+        pass
+
+    @task
+    def ttf(**context):
+        params = context['params']
+        results = context['ti'].xcom_pull(key='result_ufos')
+        result_ids = context['ti'].xcom_pull(key='result_ids')
+        ufo_collection = get_ufo_collection("FontsFramework", "generatedUFOs")
+
+        # generate ttf
+        for i, result in enumerate(results):
+            ttf_path = f"{params['font_folder']}/{result.split('/')[-1].split('.')[0]}.ttf"
+            ufo_to_ttf(result, ttf_path)
+
+            #update mongo with the ttf file
+            pass
+
+    @task
+    def otf():
+        # generate otf
+        pass        
+
+    @task
+    def upload_formatted_font():
+        # upload fonts to mongo
+        pass
+
     @task.branch
     def choose_format():
         return "ttf"
