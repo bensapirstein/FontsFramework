@@ -2,7 +2,7 @@ from airflow import DAG
 from airflow.decorators import task
 from datetime import datetime
 from include.web_scraping import download_fonts_from_url
-from include.data_collection import convert_to_ufo, upload_ufos
+from include.data_collection import convert_folder_to_ufo, upload_ufos
 
 with DAG("etl_collect_arfonts", start_date=datetime(2023, 1, 1), schedule_interval="@daily",
     catchup=False) as dag:
@@ -12,11 +12,11 @@ with DAG("etl_collect_arfonts", start_date=datetime(2023, 1, 1), schedule_interv
         download_fonts_from_url(url, out_path)
 
     @task
-    def transform(url, fonts_path):
-        convert_to_ufo(fonts_path)
+    def transform(fonts_path):
+        convert_folder_to_ufo(fonts_path)
 
     @task 
-    def load(url, fonts_path):
+    def load(fonts_path):
         upload_ufos(fonts_path)
 
-    load(transform(extract(('https://www.arfonts.net/', 'arfonts'))))
+    extract("https://www.arfonts.net/", "arfonts") >> transform("arfonts") >> load("arfonts")

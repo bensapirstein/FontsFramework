@@ -1,5 +1,5 @@
 dag_id: 'collect_arfonts'
 schedule_interval: '@daily'
 catchup: False
-url: 'https://www.arfonts.net/'
-folder: 'arfonts'
+url: '"https://www.arfonts.net/"'
+folder: '"arfonts"'

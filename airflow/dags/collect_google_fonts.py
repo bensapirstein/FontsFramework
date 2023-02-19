@@ -52,7 +52,7 @@ with DAG(
             'downloaded_file' : 'fonts_info/downloaded_fonts.csv',
             'filtered_info_file' : 'fonts_info/filtered_fonts_info.csv',
             'ufo_file' : 'fonts_info/ufo_data.csv',
-            'num_parallel_tasks' : 2
+            'num_parallel_tasks' : 5
         }
     ) as dag:
     
@@ -168,4 +168,4 @@ with DAG(
 
     # Define the DAG dependencies
     n = dag.params['num_parallel_tasks']
-    extract(n + 1) >> transform(n) >> load()
+    extract(n) >> transform(n) >> load()

@@ -1,50 +1,70 @@
-# FontsFramework
+# Generative Fonts Framework
 
-The project notebooks should run in the following order:
+The Generative Fonts Framework is a tool that allows designers and developers to easily create unique fonts in an instant manner. With this framework, you can create multilingual fonts, shuffled fonts or fonts with a specific set of glyphs.
 
-1. Data Collection
-2. Data Ingestion
-3. Data Preparation
-4. Data Analysis
-5. Data Storage
+## Features
 
+- Easy to use: the framework is designed to be user-friendly, with a simple interface that makes it easy to create custom fonts.
+- Customizable: you can adjust the configuration of the dynamic DAGs to collect fonts from a website to your liking.
+- Open-source: the framework is available on GitHub, so you can modify and improve it as needed.
 
-## Data Format
+## Getting Started
 
-The dataset should contain a list of font families, where each font family is represented by a dictionary with the following key-value pairs:
+To get started with the Generative Fonts Framework, follow these steps:
 
+1. Clone the repository to your local machine.
+2. Initiate airflow environment, we recommend using the astronomer CLI:
+```
+astro dev start
+```
 
-- `family`: a string indicating the name of the font family
-- `subsets`: a list of strings that indicate the language or character sets that the font is designed to support
-- `category`: a string indicating the category of the font family (e.g. serif, sans-serif, handwriting, display)
-- `variants`: a list of dictionaries, where each dictionary represents a variant of the font family. Each variant dictionary should contain the following key-value pairs:
-  - `name`: a string indicating the name of the variant
-  - `glyphs`: a list of dictionaries, where each dictionary represents a glyph in the variant. Each glyph dictionary should contain the following key-value pairs:
-    - `contours`: a string containing the glyph's contours in SVG format
-    - `name`: a string indicating the name of the glyph
-    - `advance`: a float indicating the advance width of the glyph
-    - `unicode`: a string indicating the Unicode code point of the glyph
-    - `meanX`: a float indicating the mean value of the X coordinate of the glyph's points
-    - `meanY`: a float indicating the mean value of the Y coordinate of the glyph's points
-    - `stddevX`: a float indicating the standard deviation of the X coordinate of the glyph's points
-    - `stddevY`: a float indicating the standard deviation of the Y coordinate of the glyph's points
-    - `area`: a float indicating the area of the glyph
-  - `kerning`: a dictionary containing kerning information for the variant. The keys of the dictionary are pairs of glyph names and the values are the kerning values for those glyph pairs.
-  - `grouping`: a dictionary containing grouping information for the variant. The keys of the dictionary are group names and the values are lists of glyph names that belong to the group.
-- `master`: an optional dictionary representing the designspace for a variable font. The dictionary should contain the following key-value pairs:
-  - `axes`: a list of dictionaries, where each dictionary represents an axis in the designspace. Each axis dictionary should contain the following key-value pairs:
-    - `name`: a string indicating the name of the axis
-    - `minimum`: a float indicating the minimum value of the axis
-    - `maximum`: a float indicating the maximum value of the axis
-    - `default`: a float indicating the default value of the axis
-  - `sources`: a list of dictionaries, where each dictionary represents a source in the designspace. Each source dictionary should contain the following key-value pairs:
-    - `variant`: a string indicating the name of the variant in the `variants` field of the font family dictionary.
-      - `location`: a dictionary containing the values of the axes for the source. The keys of the dictionary are the names of the axes and the values are the corresponding axis values for the source.
-    - `info`: an optional dictionary containing additional information about the source.
-  - `instances`: a list of dictionaries, where each dictionary represents an instance in the designspace. Each instance dictionary should contain the following key-value pairs:
-    - `variant`: a string indicating the name of the variant in the `variants` field of the font family dictionary.
-    - `location`: a dictionary containing the values of the axes for the instance. The keys of the dictionary are the names of the axes and the values are the corresponding axis values for the instance.
-    - `kerning`: an optional dictionary containing kerning information for the instance. The keys of the dictionary are pairs of glyph names and the values are the kerning values for those glyph pairs.
-    - `info`: an optional dictionary containing additional information about the instance.
+This will start the airflow environment and install all the required dependencies.
+you can access the airflow UI at http://localhost:8080
 
-This data format takes into consideration the One-to-Many relationships between font families and variants, and between variants and glyphs. It also allows for the optional inclusion of designspace information for variable fonts.
+3. Initiate the Fonts Server as described in the [Server README](
+
+## Usage
+
+To use the Generative Fonts Framework, follow these steps:
+
+1. Open the Airflow UI and navigate to the DAGs section.
+2. Run the following DAGs in order:
+
+   ### etl_collect_<website_name>
+   ![etl_collect_website_name DAG](/images/etl_collect_website_name_dag.png)
+
+   Repeat this step for each website you want to collect fonts from. This DAG extracts, transforms, and loads the font data from the specified website.
+
+   ### collect_google_fonts
+   ![collect_google_fonts DAG](/images/collect_google_fonts_dag.png)
+
+   This DAG collects fonts from Google Fonts.
+
+   ### data_enrichment
+   ![data_enrichment DAG](/images/data_enrichment_dag.png)
+
+   This DAG enriches the collected fonts with granulated glyph information and converts glyphs to SVG format.
+
+   ### clustering
+   ![clustering DAG](/images/clustering_dag.png)
+
+   This DAG clusters the fonts based on their features.
+
+   ### data_generation
+   ![data_generation DAG](/images/data_generation_dag.png)
+
+   This DAG generates fonts using the generative algorithms.
+
+3. Once the data_generation DAG has finished running, you can find the generated fonts in the local airflow directory under `generated_fonts`.
+
+## Contributing
+
+If you want to contribute to the Generative Fonts Framework, follow these steps:
+
+1. Fork the repository.
+2. Create a new branch with your changes.
+3. Submit a pull request.
+
+## License
+
+The Generative Fonts Framework is licensed under the MIT License. See LICENSE for more information.

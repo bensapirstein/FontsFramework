@@ -54,13 +54,27 @@ with DAG(
         collection.insert_many(records)
 
 
-    if False:
-        notebook_task = PapermillOperator(
-            task_id="clustering_notebook",
-            input_nb="include/notebooks/kmeans.ipynb",
-            output_nb="include/out-{{ execution_date }}.ipynb",
-            parameters={"execution_date": "{{ execution_date }}",
-                    "data_path": "means_df.csv"}
-        )
+    notebook_task = PapermillOperator(
+        task_id="clustering_notebook",
+        input_nb="include/notebooks/kmeans.ipynb",
+        output_nb="include/out-{{ execution_date }}.ipynb",
+        parameters={"execution_date": "{{ execution_date }}",
+                "data_path": "means_df.csv"}
+    )
+
+    @task
+    def update_fonts_clusters():
+        ufo_collection = get_ufo_collection("FontsFramework", "UFOs")
+        fonts = ufo_collection.find({"granulated_data": {"$exists": True}}, {"family": 1, "variant": 1, "granulated_data": 1}).limit(1000)
+
+        # read the clusters from the csv
+        clusters = pd.read_csv('clusters.csv')
+        clusters = clusters.set_index('family_variant')
+
+        # update the fonts in mongo
+        for font in fonts:
+            family_variant = font['family'] + '_' + font['variant']
+            cluster = clusters.loc[family_variant]['cluster']
+            ufo_collection.update_one({'family': font['family'], 'variant': font['variant']}, {'$set': {'cluster': cluster}})
     
-    prepare_clustering_data()
+    prepare_clustering_data() >> notebook_task >> update_fonts_clusters()

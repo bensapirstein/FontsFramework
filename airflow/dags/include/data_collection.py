@@ -1,3 +1,4 @@
+# Description: This script contains functions for collecting data from the Google Fonts API and downloading the fonts.
 # Import necessary libraries
 import ast
 import pandas as pd
@@ -55,9 +56,11 @@ def filter_fonts(df: pd.DataFrame, num_fonts: int=None, categories: list=None, s
     - num_fonts (int): The number of fonts to select from the dataset. If not specified, all the fonts in the dataset that match the specified categories and subsets will be returned.
     - categories (list): A list of font categories to filter the dataset by.
     - subsets (list): A list of character subsets to filter the dataset by.
+    - families (list): A list of font families to filter the dataset by.
+    - ufo_collection (Collection): A MongoDB collection containing the fonts that already exist in the dataset.
 
     Returns:
-    - pd.DataFrame: A Pandas DataFrame containing the selected fonts.
+    - pd.DataFrame: A Pandas DataFrame containing a list of fonts, with a 'category' column specifying the font category and a 'subsets' column specifying the supported character subsets.
 
     Example:
     - font_dataset = select_fonts(fonts_info_df, None, categories=['sans-serif'], subsets=['latin', 'cyrillic'])
@@ -99,20 +102,17 @@ def filter_fonts(df: pd.DataFrame, num_fonts: int=None, categories: list=None, s
 
 def download_fonts(font_dataset: pd.DataFrame, font_folder: str) -> pd.DataFrame:
     """
-    This function downloads the full zip of the fonts, including variable font files, for each font in the specified dataset.
-    The zip files are saved in a 'zips' subfolder in the 'fonts' folder. The file paths of the TTF files are added to the
-    'file_path' column of the font dataset.
+    This function downloads the fonts from the specified dataset and saves them in the specified folder.
 
     Parameters:
-    - font_dataset (pd.DataFrame): A Pandas DataFrame containing a list of fonts, with a 'family' column specifying the
-      font family name.
+    - font_dataset (pd.DataFrame): A Pandas DataFrame containing a list of fonts, with a 'category' column specifying the font category and a 'subsets' column specifying the supported character subsets.
+    - font_folder (str): The path to the folder where the fonts will be saved.
 
     Returns:
-    - pd.DataFrame: The input font dataset with the 'file_path' column updated with the file paths of the TTF files.
+    - pd.DataFrame: A Pandas DataFrame containing a list of fonts, with a 'category' column specifying the font category and a 'subsets' column specifying the supported character subsets.
 
     Example:
-    - font_dataset = select_fonts(fonts_info_df, None, categories=['sans-serif'], subsets=['latin', 'cyrillic'])
-    - font_dataset = download_font_zip(font_dataset)
+    - font_dataset = download_fonts(font_dataset, "data/fonts")
     """
 
     # Create a folder to store the font files
@@ -154,11 +154,46 @@ def download_fonts(font_dataset: pd.DataFrame, font_folder: str) -> pd.DataFrame
     return font_dataset.assign(file_path=families_paths)
 
 def parse_list(string): 
+    """
+    This function parses a string containing a list of values and returns a list of the values.
+    """
     return [s.strip("''") for s in string.strip('[]').split(', ')]
 
-# Receive another parameter for which rows of the df should be executed
-def convert_df_to_ufo(df, fonts_path):
+def convert_folder_to_ufo(fonts_path: str):
+    """
+    This function converts the fonts in the specified folder to UFO format and saves them in the specified folder.
 
+    Parameters:
+    - fonts_path (str): The path to the folder where the fonts will be saved.
+    """
+    # Create a folder to store the UFO files
+    output_path = os.path.join(fonts_path, "ufo")
+    
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+
+    # Recursively search for TTF files in the fonts path
+    ttf_files = []
+    for root, dirs, files in os.walk(fonts_path):
+        for file in files:
+            if file.endswith('.ttf'):
+                ttf_files.append(os.path.join(root, file))
+    
+    # Convert the TTF files to UFO format
+    for ttf_file in tqdm(ttf_files):
+        ufo_file_path = os.path.join(output_path, os.path.basename(ttf_file).replace(".ttf", ".ufo"))
+        ttf_to_ufo(ttf_file, ufo_file_path)
+
+
+# Receive another parameter for which rows of the df should be executed
+def convert_df_to_ufo(df: pd.DataFrame, fonts_path: str):
+    """
+    This function converts the fonts in the specified dataset to UFO format and saves them in the specified folder.
+
+    Parameters:
+    - df (pd.DataFrame): A Pandas DataFrame containing a list of fonts, with a 'category' column specifying the font category and a 'subsets' column specifying the supported character subsets.
+    - fonts_path (str): The path to the folder where the fonts will be saved.
+    """
     # Parse the list columns
     df['subsets'] = df['subsets'].apply(parse_list)
     df['category'] = df['category'].apply(parse_list)
@@ -207,7 +242,17 @@ def convert_df_to_ufo(df, fonts_path):
         ufo_df = ufo_df.append({'family': family, 'subsets': row["subsets"], 'category': row["category"], 'master': master, 'variants': variants}, ignore_index=True)
     return ufo_df
 
-def upload_ufos(data_file, ufo_collection):
+def upload_ufos(data_file: str, ufo_collection: Collection):
+    """
+    This function uploads the UFO files in the specified dataset to the specified MongoDB collection.
+
+    Parameters:
+    - data_file (str): The path to the CSV file containing the UFO dataset.
+    - ufo_collection (pymongo.collection.Collection): The MongoDB collection to upload the UFO files to.
+
+    Returns:
+    - failed_cases (list): A list of the font families that failed to upload.
+    """
     failed_cases = []
     df = pd.read_csv(data_file, converters={"subsets": parse_list, "variants":ast.literal_eval})
     print(f"Uploading {df.shape[0]} fonts to MongoDB...")
