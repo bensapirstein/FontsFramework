@@ -37,25 +37,6 @@ class FontBL:
 
 
     def get_all_fonts_With_GlyphName(self,glyphName):
-        #field_name_plist = "data.glyphs/contents_plist.{}".format(glyphName)
-        #query_plist = {field_name_plist: {"$exists": True, "$ne": None}}
-        #projection_plist = {"_id": 1, "family": 1, "variant": 1, field_name_plist: 1}
-        #glyphNamesPList = list(self.__collection.find(query_plist,projection_plist))
-        # data.glyphs/contents_plist.A
-        #if len(glyphNamesPList) == 0:
-            #return glyphNamesPList
-        
-        #actual_GlyphFileName = glyphNamesPList[0]['data']['glyphs/contents_plist'][glyphName]
-
-        #actual_Glyph_Str = actual_GlyphFileName[:actual_GlyphFileName.find(".glif")]
-
-        #field_name_glyph = "data.glyphs.{}".format(actual_Glyph_Str)
-        #query_glyph = {field_name_glyph: {"$exists": True, "$ne": None}}
-        #projection_glyph = {"_id": 1, "family": 1, "variant": 1, field_name_glyph: 1}
-        #glypsList = list(self.__collection.find(query_glyph,projection_glyph))
-        #resp = {'glyphs':glypsList,'actualGlyphName':actual_Glyph_Str}
-        # glyph name 
-        #return resp
         field_name_plist = "data.glyphs/contents_plist.{}".format(glyphName)
         query_plist = {field_name_plist: {"$exists": True, "$ne": None}}
 
