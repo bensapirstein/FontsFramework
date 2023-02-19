@@ -1,6 +1,13 @@
 # Providers for MongoDB storage for Airflow
 apache-airflow-providers-mongo==3.1.0
 
+# Providers for using papermill in Airflow
+# Papermill is a tool for parameterizing and executing Jupyter Notebooks.
+apache-airflow-providers-papermill
+
+# IPython kernel for Jupyter notebooks
+ipykernel
+
 # Collection of tools for manipulating font files
 #pysilfont @ git+https://github.com/silnrsi/pysilfont
 
