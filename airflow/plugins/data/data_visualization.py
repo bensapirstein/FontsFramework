@@ -10,7 +10,17 @@ from bidi.algorithm import get_display
 
 matplotlib.rcParams['figure.figsize'] = (12, 12)
 
-def plot_glyph(glyph, ax):
+def plot_glyph(glyph: Font, ax: matplotlib.axes.Axes):
+    """
+    Plot a glyph on the given axis. The glyph is plotted as a path patch.
+
+    Parameters
+    ----------
+    glyph : defcon.Glyph
+        The glyph to plot.
+    ax : matplotlib.axes.Axes
+        The axis to plot the glyph on.
+    """
     svg = glyph_to_svg_path(glyph)
     if svg:
         patch_path = patches.PathPatch(parse_path(svg), facecolor="#f5f5f5")
@@ -19,7 +29,17 @@ def plot_glyph(glyph, ax):
         transform = transforms.Affine2D().translate(glyph.width, 0)
         patch_path.set_transform(transform + ax.transData)
 
-def plot_text(font, text):
+def plot_text(font: Font, text: str):
+    """
+    Plot a text string using the given font.
+    
+    Parameters
+    ----------
+    font : defcon.Font
+        The font to use.
+    text : str 
+        The text to plot.
+    """
 
     # create a figure and an axis
     fig, ax = plt.subplots()

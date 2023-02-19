@@ -1,9 +1,23 @@
+###############################################
+# This DAG is used to granulate data from UFOs
+###############################################
+
 from defcon import Font
 from include.data_utils.json_to_ufo import json_to_ufo
 from include.data_utils.glyph_utils import glyph_stats, glyph_to_svg_path
 import pandas as pd
 
-def extract_glyphs_data(font):
+def extract_glyphs_data(font: Font) -> pd.DataFrame:
+    """
+    Extract the data from the glyphs in the font. The data is returned as a
+    Pandas DataFrame.
+
+    Parameters
+    ----------
+    font : defcon.Font
+        The font object.
+    """
+
     # Create a list to store the glyph data
     glyph_data = []
 
@@ -35,12 +49,18 @@ def extract_glyphs_data(font):
         # Add the glyph data to the list
         glyph_data.append(glyph_dict)
     
-    return pd.DataFrame(glyph_data).agg(['mean', 'std'])
+    return glyph
 
-def granulate_glyphs_data(glyphs_data):
-    glyphs_data.agg()
 
-def granulate_data(ufo_path):
+def granulate_data(ufo_path: str) -> pd.DataFrame:
+    """
+    Granulate the data from the font.
+    
+    Parameters
+    ----------
+    ufo_path : str
+        The path to the UFO file.
+    """
 
     # convert to defcon font
     font = Font(ufo_path)
@@ -58,4 +78,4 @@ def granulate_data(ufo_path):
 
     glyph_data = extract_glyphs_data(font)
     
-    return font_info, glyph_data
+    return font_info, pd.DataFrame(glyph_data).agg(['mean', 'std']) # Granulate the data

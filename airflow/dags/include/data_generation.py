@@ -1,7 +1,21 @@
 from defcon import Font
 import random
 
-def create_shuffled_font(font_paths):
+def create_shuffled_font(font_paths: list) -> Font:
+    """
+    Create a new font with the glyphs from the source fonts shuffled.
+    
+    Parameters
+    ----------
+    font_paths : list
+        A list of paths to the source fonts.
+
+    Returns
+    -------
+    defcon.Font
+        A new font object with the glyphs from the source fonts shuffled.
+
+    """
     # Create a new font object
     new_font = Font()
     new_font.ufoVersion = "3.0"
@@ -29,7 +43,24 @@ def create_shuffled_font(font_paths):
 
     return new_font
 
-def get_font_combinations(subsets, fonts, num_fonts):
+def get_font_combinations(subsets: list, fonts: dict, num_fonts: int) -> list:
+    """
+    Returns a list of font combinations.
+    
+    Parameters
+    ----------
+    subsets : list
+        A list of font subsets.
+    fonts : dict
+        A dictionary of fonts, where the keys are the font subsets and the values are lists of font paths.
+    num_fonts : int 
+        The number of font combinations to return.
+
+    Returns 
+    -------
+    list
+        A list of font combinations, where each combination is a dictionary of font paths, where the keys are the font subsets and the values are font paths.
+    """
 
     # Create a list of all possible combinations
     combinations = []
@@ -50,7 +81,20 @@ def get_font_combinations(subsets, fonts, num_fonts):
 
 
 
-def create_unified_font(font_paths):
+def create_unified_font(font_paths: list) -> Font:
+    """
+    Create a new font with the glyphs from the source fonts.
+    
+    Parameters
+    ----------
+    font_paths : list
+        A list of paths to the source fonts.
+
+    Returns
+    -------
+    defcon.Font
+        A new font object with the glyphs from the source fonts.
+    """
     # Create a new font object
     new_font = Font()
     new_font.ufoVersion = "3.0"
@@ -72,7 +116,17 @@ def create_unified_font(font_paths):
 
     return new_font
 
-def unite_infos(new_font, fonts):
+def unite_infos(new_font: Font, fonts: list):
+    """
+    Unite the font infos of the source fonts into the new font.
+
+    Parameters
+    ----------
+    new_font : defcon.Font
+        The new font object.
+    fonts : list
+        A list of source font objects.
+    """
 
     new_font.info.familyName = " ".join(font.info.familyName for font in fonts)
     new_font.info.styleName = " ".join(font.info.styleName for font in fonts)

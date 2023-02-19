@@ -6,15 +6,17 @@ import shutil
 import pymongo
 
 class TestFontDownloader(unittest.TestCase):
+    """Test the font_downloader module
+    """
     def setUp(self):
-        self.api_key = "AIzaSyCi-x8BDFvabHoFdNy9kcqpIfPPIgkz0p4"
+        self.api_key = "ENTER_API_KEY_HERE"
         self.font_folder = "test_fonts"
         self.num_fonts = 1
         self.categories = ["sans-serif"]
         self.subsets = ["latin"]
         self.ufo_collection = None
         self.data_file = "test_data.csv"
-        self.client = pymongo.MongoClient("mongodb+srv://test:M3NQXAb2mSBdsjsa@cluster0.slwp6m3.mongodb.net/test")
+        self.client = pymongo.MongoClient("mongodb+srv://<username>:<password>@cluster0.slwp6m3.mongodb.net/test")
         self.db = self.client["test_database"]
         self.ufos_collection = self.db["ufos"]
 

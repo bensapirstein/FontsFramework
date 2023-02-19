@@ -13,7 +13,7 @@ def handle_fonts(links, urlLink, folder_name):
 
 
 # DOWNLOAD ALL FONTS FROM THAT URL
-def download_fonts(links, folder_name, urlLink):
+def download_fonts(links: list, folder_name: str, urlLink: str):
     # initial count is zero
     count = 0
 
@@ -77,7 +77,7 @@ def download_fonts(links, folder_name, urlLink):
 
 
 # MAIN FUNCTION START
-def download_fonts_from_url(url, output_folder):
+def download_fonts_from_url(url: str, output_folder: str):
     # content of URL
     r = requests.get(url)
 

@@ -18,6 +18,16 @@ with DAG(
     template_searchpath='/usr/local/airflow/include/',
     catchup=False
 ) as dag:
+    """
+    This DAG is responsible for clustering the fonts based on their features.
+    It uses the data collected in the data_collection DAG.
+    
+    The clustering is done in the notebook clustering.ipynb.
+    The notebook is executed by the PapermillOperator.
+    The notebook is executed for each font family.
+    The notebook outputs a csv file with the clusters for each font.
+    The clusters are then updated in the fonts collection in mongo.
+    """
 
     @task
     def prepare_clustering_data():
