@@ -37,7 +37,7 @@ def get_start_end_rows(num_parallel_tasks, task_index, num_rows):
     return list(range(start_row, end_row))
 
 with DAG(
-        "google_fonts_etl", 
+        "collect_google_fonts", 
         start_date=datetime(2023, 1, 1),
         schedule_interval="@daily", 
         catchup=False,
