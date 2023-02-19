@@ -28,7 +28,7 @@ def parse_json(data):
     return json.loads(json_util.dumps(data))
 
 with DAG(
-    "data_enrichment_dag",
+    "data_granularity_dag",
     start_date=datetime(2023, 1, 1),
     schedule_interval="@daily",
     catchup=False,
@@ -75,12 +75,17 @@ with DAG(
 
     @task_group
     def transform(n):
+        ufo_collection = get_ufo_collection("FontsFramework", "UFOs")
+
         @task
         def convert_to_svg(i, **context):
             ufo_path = context["ti"].xcom_pull(key="return_value", task_ids=f"extract.download_ufo_{i}")
-            
+            ufo_id = context["ti"].xcom_pull(key="font_ids", task_ids="extract.get_font_ids")[i]
+
             # convert the glyphs to svg
             glyphs_svgs = glyphs_to_svg_paths(ufo_path)
+
+            ufo_collection.update_one({"_id": ObjectId(ufo_id)}, {"$set": {"glyphs_svg" : glyphs_svgs}})
 
             # pass the svg paths to the next task
             context["ti"].xcom_push(key="glyphs_svgs", value=glyphs_svgs)
@@ -88,11 +93,10 @@ with DAG(
         @task
         def granulate_ufo(i, **context):
             ufo_path = context["ti"].xcom_pull(key="return_value", task_ids=f"extract.download_ufo_{i}")
-            
+            ufo_id = context["ti"].xcom_pull(key="font_ids", task_ids="extract.get_font_ids")[i]
+
             font_info, glyphs_stats = granulate_data(ufo_path)
-            # pass the font info and glyphs stats to the next task
-            context["ti"].xcom_push(key="font_info", value=font_info)
-            context["ti"].xcom_push(key="glyphs_stats", value=glyphs_stats.to_dict())
+            ufo_collection.update_one({"_id": ObjectId(ufo_id)}, {"$set": {"granulated_data" : {"font_info": font_info, "glyphs_data": glyphs_stats.to_dict()}}})
 
         [convert_to_svg.override(task_id=f"convert_to_svg_{i}")(i) >> granulate_ufo.override(task_id=f"granulate_ufo_{i}")(i) for i in range(n)]
             
@@ -106,16 +110,8 @@ with DAG(
         
         @task
         def update_mongo(**context):
-            ufo_ids = context["ti"].xcom_pull(key="font_ids", task_ids="extract.get_font_ids")
-            ufo_collection = get_ufo_collection("FontsFramework", "UFOs")
-            for i, ufo_id in enumerate(ufo_ids):
-                print(f"Updating {ufo_id} in mongo")
-                glyphs_svgs = context["ti"].xcom_pull(key="glyphs_svgs", task_ids=f"transform.convert_to_svg_{i}")
-                ufo_collection.update_one({"_id": ObjectId(ufo_id)}, {"$set": {"glyphs_svg" : glyphs_svgs}})
-
-                font_info = context["ti"].xcom_pull(key="font_info", task_ids=f"transform.granulate_ufo_{i}")
-                glyphs_stats = context["ti"].xcom_pull(key="glyphs_stats", task_ids=f"transform.granulate_ufo_{i}")
-                ufo_collection.update_one({"_id": ObjectId(ufo_id)}, {"$set": {"granulated_data" : {"font_info": font_info, "glyphs_data": glyphs_stats}}})
+            pass
+                
             
         update_mongo() >> delete_ufos()
         
