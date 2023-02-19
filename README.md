@@ -21,7 +21,10 @@ astro dev start
 This will start the airflow environment and install all the required dependencies.
 you can access the airflow UI at http://localhost:8080
 
-3. Initiate the Fonts Server as described in the [Server README](
+3. Initiate the Fonts Server as described in the Server README
+4. Obtain a Google Fonts API Key and Edit the Config File
+
+To use the `collect_google_fonts` DAG, you will need to obtain a Google Fonts API Key. You can get a key by following the instructions on the [Google Fonts Developer API](https://developers.google.com/fonts/docs/developer_api) page. Once you have obtained a key, you will need to edit the `config.json` file and add your key to the `GOOGLE_FONTS_API_KEY` field.
 
 ## Usage
 
