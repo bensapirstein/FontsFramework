@@ -96,7 +96,5 @@ with DAG(
     )
 
     # set task dependencies
-    download_google_fonts >> convert_to_ufo
-    crawl_web_fonts >> convert_to_ufo
-    upload_local_folder >> convert_to_ufo 
+    [download_google_fonts, crawl_web_fonts, upload_local_folder] >> convert_to_ufo
     convert_to_ufo >> upload_to_mongoDB

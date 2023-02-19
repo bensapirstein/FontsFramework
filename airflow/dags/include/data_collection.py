@@ -214,6 +214,7 @@ def upload_ufos(data_file, ufo_collection):
     for _, row in tqdm(df.iterrows(), total=df.shape[0], desc="Uploading Fonts..."):
         family = row['family']
         variants = row['variants']
+        subsets = row['subsets']
         print(f"Uploading {len(variants)} variants for {family}...")
         for variant, ufo_file_path in variants.items():
             print(f"Variant: {variant}")
@@ -222,7 +223,7 @@ def upload_ufos(data_file, ufo_collection):
                 ufo_json = ufo_to_json(ufo_file_path)
                 print("Keys: ")
                 print(ufo_json.keys())
-                ufo_collection.insert_one({'family': family, 'variant': variant, 'data': ufo_json})
+                ufo_collection.insert_one({'family': family, 'variant': variant, 'data': ufo_json, 'subsets': subsets})
             except Exception as e:
                 failed_cases.append({'family': family, 'variant': variant, 'error': str(e)})
     return failed_cases
