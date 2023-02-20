@@ -1,0 +1,25 @@
+# This file allows you to configure Airflow Connections, Pools, and Variables in a single place for local development only.
+# NOTE: json dicts can be added to the conn_extra field as yaml key value pairs. See the example below.
+
+# For more information, refer to our docs: https://docs.astronomer.io/develop-project#configure-airflow_settingsyaml-local-development-only
+# For questions, reach out to: https://support.astronomer.io
+# For issues create an issue ticket here: https://github.com/astronomer/astro-cli/issues
+
+airflow:
+  connections:
+    - conn_id: mongo_default
+      conn_type: mongo
+      conn_host: cluster0.<cluster id>.mongodb.net # replace with your cluster id
+      conn_schema: FontsFramework
+      conn_login: <username> # replace with your username
+      conn_password: <password> # replace with your password
+      conn_port:
+      conn_extra: '{"srv": true}'
+        #example_extra_field: example-value
+  pools:
+    - pool_name:
+      pool_slot:
+      pool_description:
+  variables:
+    - variable_name: GOOGLE_FONTS_API_KEY
+      variable_value: <api key> # replace with your api key
