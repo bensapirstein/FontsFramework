@@ -44,11 +44,16 @@ with DAG(
         @task
         def get_font_ids(**context):
             # Get font ids of fonts that have not been enriched yet.
-            # not enriched fonts are those that do not have the "granulated_data" field or "glyphs_svg" field
+            # not enriched fonts are those that do not have the "granulated_data" field or "unicodes_svg" field
             # Limit the number of fonts to be processed in parallel
+            # font_ids = \
+            #     list(ufo_collection.find({"$or": [{"granulated_data": {"$exists": False}}, {"unicodes_svg": {"$exists": False}}]}, {"_id": 1})\
+            #         .limit(n))
+
             font_ids = \
-                list(ufo_collection.find({"$or": [{"granulated_data": {"$exists": False}}, {"glyphs_svg": {"$exists": False}}]}, {"_id": 1})\
-                    .limit(n))
+                list(ufo_collection.find({"unicodes_svg": {"$exists": False}}, {"_id": 1})\
+                     .limit(n))
+
 
             # extract the font ids from the list of dicts
             font_ids = [str(font_id["_id"]) for font_id in font_ids]
@@ -83,12 +88,9 @@ with DAG(
             ufo_id = context["ti"].xcom_pull(key="font_ids", task_ids="extract.get_font_ids")[i]
 
             # convert the glyphs to svg
-            glyphs_svgs = glyphs_to_svg_paths(ufo_path)
+            unicodes_svgs = glyphs_to_svg_paths(ufo_path)
 
-            ufo_collection.update_one({"_id": ObjectId(ufo_id)}, {"$set": {"glyphs_svg" : glyphs_svgs}})
-
-            # pass the svg paths to the next task
-            context["ti"].xcom_push(key="glyphs_svgs", value=glyphs_svgs)
+            ufo_collection.update_one({"_id": ObjectId(ufo_id)}, {"$set": {"unicodes_svg" : unicodes_svgs}})
 
         @task
         def granulate_ufo(i, **context):
@@ -98,7 +100,8 @@ with DAG(
             font_info, glyphs_stats = granulate_data(ufo_path)
             ufo_collection.update_one({"_id": ObjectId(ufo_id)}, {"$set": {"granulated_data" : {"font_info": font_info, "glyphs_data": glyphs_stats.to_dict()}}})
 
-        [convert_to_svg.override(task_id=f"convert_to_svg_{i}")(i) >> granulate_ufo.override(task_id=f"granulate_ufo_{i}")(i) for i in range(n)]
+        [convert_to_svg.override(task_id=f"convert_to_svg_{i}")(i) for i in range(n)]
+        #  >> granulate_ufo.override(task_id=f"granulate_ufo_{i}")(i) 
             
 
     @task_group

@@ -46,7 +46,11 @@ def glyphs_to_svg_paths(ufo_path):
     unitsPerEm = font.info.unitsPerEm
 
     # write it in list comprehension
-    glyphs = {glyph.name: {"svg": glyph_to_svg_path(glyph)} for glyph in font if glyph.name not in [".notdef", ".null"]}
+    glyphs = {chr(glyph.unicode): {
+        "svg": glyph_to_svg_path(glyph),
+        "width": glyph.width,
+        "nwidth": glyph.width/unitsPerEm,
+        } for glyph in font if glyph.unicode}
     
     # normalize the svg paths using unitsPerEm under "nsvg" key
     for glyph in glyphs:
