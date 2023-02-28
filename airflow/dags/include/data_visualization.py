@@ -3,12 +3,14 @@ from bidi.algorithm import get_display
 import yaml
 from include.mongo_utils import pymongo_get_ufo_collection
 from include.data_utils.text_utils import animate_random_text
-
+import os
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 from typing import List
 from include.data_utils.text_utils import plot_glyph, plot_text
+from PIL import Image
+import glob
 
 def generate_glyph_df(text: str, ufo_collection, n: int) -> pd.DataFrame:
     glyphs = []
@@ -31,7 +33,7 @@ class DataVisualization:
     def __init__(self, fonts_df: pd.DataFrame):
         self.fonts_df = fonts_df
 
-    def plot_glyphs(self, char: str, n_rows: int = 4, n_cols: int = 4):
+    def plot_glyphs(self, char: str, n_rows: int = 4, n_cols: int = 4, output_file: str = None):
         fig, axs = plt.subplots(nrows=n_rows, ncols=n_cols, figsize=(8, 2*n_cols))
         fig.tight_layout(pad=0.3)
 
@@ -46,8 +48,11 @@ class DataVisualization:
 
             #axs[i][0].set_ylabel(row["family"], rotation=0, labelpad=25)
 
+        if output_file:
+            plt.savefig(output_file, bbox_inches="tight")
+        else:
+            plt.show()
 
-        plt.show()
 
     def plot_word(self, word: str, fonts: List[str]):
         fig, axs = plt.subplots(nrows=len(fonts), figsize=(8, 2*len(fonts)))
@@ -141,19 +146,33 @@ def main():
     # Connect to MongoDB and get the UFO collection
     collection = pymongo_get_ufo_collection('FontsFramework', 'UFOs', settings)
 
-    # Define the multilingual text to animate
-    text = "שלום\nHello\nمرحبات"
+    arabic_alphabet = ['ا', 'ب', 'ت', 'ث', 'ج', 'ح', 'خ', 'د', 'ذ', 'ر', 'ز', 'س', 'ش', 'ص', 'ض', 'ط', 'ظ', 'ع', 'غ',
+                       'ف', 'ق', 'ك', 'ل', 'م', 'ن', 'ه', 'و', 'ي']
+    hebrew_alphabet = ['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ז', 'ח', 'ט', 'י', 'כ', 'ך', 'ל', 'מ', 'ם', 'נ', 'ן', 'ס', 'ע',
+                       'פ', 'ף', 'צ', 'ץ', 'ק', 'ר', 'ש', 'ת']
+
+    # Define the multilingual text to download the glyphs for heb and arabic
+    text = "".join(arabic_alphabet + hebrew_alphabet)
 
     glyphs_df = generate_glyph_df(text, collection, n=16)
 
-    # visualize glyphs
-    viz = DataVisualization(glyphs_df)
-    viz.plot_glyphs("ت", 4, 4)
-    viz.plot_word("Hello, world!", ["Arial", "Courier", "Times New Roman"])
 
-    # plot variants for the letter A
-    viz.plot_variants("A", ["Arial", "Courier", "Times New Roman"])
+    # create the output directory if it doesn't exist
+    if not os.path.exists("abjad"):
+        os.makedirs("abjad")
 
+    # # visualize glyphs
+    # viz = DataVisualization(glyphs_df)
+    # for char in arabic_alphabet + hebrew_alphabet:
+    #     print(f"Plotting {char}...")
+    #     viz.plot_glyphs(char, 4, 4, output_file=f"abjad/{char}.png")
+
+
+    # create an animated GIF
+    images = []
+    for filename in glob.glob("abjad/*.png"):
+        images.append(Image.open(filename))
+    images[0].save("abjad/animation.gif", save_all=True, append_images=images[1:], duration=1000, loop=0)
 
 if __name__ == "__main__":
     main()
