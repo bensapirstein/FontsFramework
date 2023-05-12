@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <title>Single Glif Display</title>
+  </head>
+  <body>
+    <h1>Single Glif Display</h1>
+    <p>This is a simple web page that displays a single glif:</p>
+    <svg width="800" height="600">
+      <path id="glyph-path" d="" stroke="black" stroke-width="2"/>
+    </svg>
+    
+    <script>
+      // Read the glif file
+      const request = new XMLHttpRequest();
+      request.open("GET", "glifs/uni05F_4.glif", true);
+      request.send();
+      request.onreadystatechange = function() {
+        if (this.readyState === XMLHttpRequest.DONE && this.status === 200) {
+          // Parse the glif file into an SVG path
+          const parser = new DOMParser();
+          const glif = parser.parseFromString(this.responseText, "text/xml");
+          const path = glif.getElementsByTagName("path")[0];
+          
+          // Insert the SVG path into the SVG element
+          const glyphPath = document.getElementById("glyph-path");
+          glyphPath.setAttribute("d", path.getAttribute("d"));
+        }
+      };
+    </script>
+  </body>
+</html>
